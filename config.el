@@ -956,6 +956,7 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
 
 ;; [[file:config.org::*Emacs][Emacs:1]]
 (setq desktop-save-mode nil)
+(setq load-prefer-newer t)
 ;; Emacs:1 ends here
 
 ;; [[file:config.org::*simple-httpd][simple-httpd:1]]

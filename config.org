@@ -962,6 +962,7 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
 * Emacs
 #+BEGIN_SRC emacs-lisp
 (setq desktop-save-mode nil)
+(setq load-prefer-newer t)
 #+END_SRC
 
 #+RESULTS:
