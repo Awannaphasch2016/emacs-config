@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: research log current date
+# key: rlogc
+# condition: t
+# --
+
+* Research Date: `(with-temp-buffer (org-insert-time-stamp nil nil t))`
+- ref
+  - https://roamresearch.com/#/app/AdaptiveGraphStucture/page/pfT6XbX8F
+** Research Log 1: $1

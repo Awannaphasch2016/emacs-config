@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: command line and key binding table
+# key: cmdt
+# condition: t
+# --
+
+|commands|key|doom keys|custom keys|descriptions|

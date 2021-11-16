@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: summary of research log heading
+# key: slogh
+# condition: t
+# --
+
+
+** Summary Log $1: $2

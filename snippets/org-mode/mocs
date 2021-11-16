@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Map of contents
+# key: moc
+# condition: t
+# --
+
+* Map of Contents (MOCs)
+$1

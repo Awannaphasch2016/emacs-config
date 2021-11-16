@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: log section in research log
+# key: rlogl
+# condition: t
+# --
+
+*** Action Logs
+- note
+  - log every actions relevant to the current log
+$1

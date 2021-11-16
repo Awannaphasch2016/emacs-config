@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: research log future direction
+# key: rlogd
+# condition: t
+# --
+
+
+*** Future Direction
+$1

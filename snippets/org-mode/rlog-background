@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: research log background
+# key: rlogb
+# condition: t
+# --
+
+*** Background (information and description of goal)
+- note
+  - Why are you doing this? What is the movitation?
+  - What is your expectation of the results?
+$1

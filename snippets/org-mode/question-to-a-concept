@@ -1,0 +1,18 @@
+# -*- mode: snippet -*-
+# name: quesiton-to-a-concept
+# key: ;r/h/g
+# --
+
+* #[[Tags]]:
+* #[[Reference]]:
+* #[[You May Want to See Also]]:
+* #[[How does it work?]]
+    ** #[[Definition]] #[[Description]]
+    ** #[[Story]] #[[History]]
+    ** #[[Use Case]]
+    ** Pro and Con
+        *** #[[Pro]]
+        *** #[[Con]]
+    ** #[[Compare]]
+    ** #[[Relationship]]
+    ** #[[Frequently Ask Questions]]

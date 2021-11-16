@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: research log analysis
+# key: rloga
+# condition: t
+# --
+
+*** Data analysis
+- note
+  - Have the data been analyzed adequately and accurately (including appropriate consideration of both random and systematic uncertainties)
+  - Are the steps you took in performing the analysis clearly documented?
+$1

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: research log heading
+# key: rlogh
+# condition: t
+# --
+
+
+** Research Log $1: $2

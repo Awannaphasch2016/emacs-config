@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: error log fix bugs and errors
+# key: rlogf
+# condition: t
+# --
+
+
+*** Fix
+$1

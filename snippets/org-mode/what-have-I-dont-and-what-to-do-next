@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: what have I done and what to do next?
+# key: w
+# condition: t
+# --
+
+`(with-temp-buffer (org-insert-time-stamp nil nil t))`: WHAT HAVE I DONE AND WHAT TO DO NEXT?
+$1

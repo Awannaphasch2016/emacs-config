@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: research log thought
+# key: rlogt
+# condition: t
+# --
+
+*** Thought
+- note
+  - Record your thought at the time that you perform the experiments.
+  - Are you drawing conclusion from your data?
+  - Given what you have done and learned today, what should you do next and which ideas or concepts can be extended in the current and potention future researches?
+$1

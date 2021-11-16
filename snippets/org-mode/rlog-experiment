@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: research log experiment
+# key: rloge
+# condition: t
+# --
+
+*** Experimental apparatus and procedures
+- note
+  - have you provided sufficient detail in your description of experiment and apparatus to allow another person to reproduce your results or track down the source of any problems with the results?
+  - have you included important detail that are not contained within the writeup?
+  - Describe what you have done and how you have done it.
+$1

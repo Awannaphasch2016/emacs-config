@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: research log observation
+# key: rlogo
+# condition: t
+# --
+
+*** Data and Observations
+- note
+  - Does the logbook present the data and observations adequately?
+  - How did you performed validation step as proof of correctness of your work?
+  - Are graphs appropriately labeled and legible?
+$1
