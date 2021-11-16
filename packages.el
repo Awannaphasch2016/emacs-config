@@ -69,8 +69,9 @@
 (package! ledger-mode)
 (package! org-sidebar)
 (package! org-bullets)
-(package! pdf-tools)
+;; (package! pdf-tools) ;; for
 (package! ox-reveal)
+;; dap-mode is highlighted in pink while other is highlighted in white. Does it mean it always is loaded by doom emacs?
 (package! dap-mode)
 (package! elfeed-goodies)
 (package! leetcode)
