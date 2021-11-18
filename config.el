@@ -1064,7 +1064,7 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
   (list :type "python"
         :name "gdb::run with arguments"
         ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
-        :args (list "--data" "reddit_with_expert_labels" "--bipartite")
+        :args (list "--data" "reddit_with_expert_labels_10000" "--bipartite")
         ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
         :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
         :module nil
@@ -1076,10 +1076,25 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
   (list :type "python"
         :name "gdb::run with arguments"
         ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
-        :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10")
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10")
+        :args (list "-d" "reddit_with_expert_labels" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10")
         ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
         :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
         :module nil
         :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
         :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_supervised with 10000 expert labels)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10" "--n_epoch" "50")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
+        :request "launch"))
+
 ;; Dap Mode =debug.el= Configuration:1 ends here
