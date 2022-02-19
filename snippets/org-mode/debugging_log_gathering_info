@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: gathering information header in debugging log
+# key: dgi
+# condition: t
+# --
+
+GATHERING_INFO: $1

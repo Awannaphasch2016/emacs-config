@@ -65,21 +65,25 @@
 (package! org-tree-slide)
 (package! ace-jump-mode)
 (package! org-ref)
-(package! org-noter)
+;; (package! org-noter)
 (package! ledger-mode)
 (package! org-sidebar)
 (package! org-bullets)
-;; (package! pdf-tools) ;; for
+(package! pdf-tools) ;; for
 (package! ox-reveal)
 ;; dap-mode is highlighted in pink while other is highlighted in white. Does it mean it always is loaded by doom emacs?
 (package! dap-mode)
+;; (package! dap-lldb)
 (package! elfeed-goodies)
 (package! leetcode)
 (package! simple-httpd)
 (package! bookmark+)
-(package! jupyter)
+;; (package! jupyter)
 (package! tree-sitter)
 (package! tree-sitter-langs)
+(package! cask) ;; added this while attempted to debug pdf-tools (I still can't fix it)
+(package! stickyfunc-enhance)
+(package! exec-path-from-shell)
 ;; (package! evil-paredit)
 ;; (package! paredit)
 ;; (package! paredit-everywhere)
@@ -87,3 +91,26 @@
 ;; (package! gitconfig-mode :disable t)
 ;; (package! gitignore-mode :disable t)
 ;; (package! git-modes :pin "433e1c57a63c88855fc41a942e29d7bc8c9c16c7")
+(package! web-beautify)
+
+;; environment variables managers
+;; (package! conda)
+;; (package! pyvenv)
+;; (package! lispy)
+;; (package! lispyville)
+
+(package! lsp-metals)                   ;; lsp for  scala-mode
+;; (package! format-all)                   ;; lsp for  scala-mode
+
+;; (package! webfrer -debug)
+(package! benchstat)                    ;;
+(package! cfn-mode) ;; cloudformation mode
+;; (package! code-cell)
+(package! camcorder)
+(package! ob-mermaid)
+(package! mermaid-mode)
+(package! graphviz-dot-mode)
+;; (package! ob-scala)
+(package! lsp-pyright)
+(package! yankpad)
+(package! org-transclusion)

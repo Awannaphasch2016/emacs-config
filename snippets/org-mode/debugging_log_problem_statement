@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: problem statement header in debugging log
+# key: dps
+# condition: t
+# --
+
+PROBLEM_STATEMENT: $1

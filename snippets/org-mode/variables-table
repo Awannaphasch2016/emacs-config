@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: variable tables
+# key: vart
+# condition: t
+# --
+
+|Variables|Description|

@@ -4,9 +4,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(org-agenda-files
-   '("~/Scratches/tmp.org" "/home/awannaphasch2016/org/journal.org" "/home/awannaphasch2016/org/notes.org" "/home/awannaphasch2016/org/todo.org"))
+   '("/home/awannaphasch2016/org/Graph Contrastive Learning with Augmentation.org" "/home/awannaphasch2016/org/diary.org" "/home/awannaphasch2016/org/journal.org" "/home/awannaphasch2016/org/notes.org" "/home/awannaphasch2016/org/refile.org" "/home/awannaphasch2016/org/todo.org"))
  '(package-selected-packages
-   '(org-drill bicycle org-noter-pdftools yasnippet ace-jump-mode dap-mode org-roam-bibtex zotero org-present eimp pkg-info org-web-tools org-sidebar org-roam org-ref org-preview-html org-pdftools org-download org-brain ob-ipython ledger-mode eglot)))
+   '(exec-path-from-shell zotero yasnippet pkg-info org-web-tools org-sidebar org-roam org-ref org-preview-html org-present org-noter-pdftools org-drill org-download org-brain ob-ipython ledger-mode key-chord ivy helm-bibtex eimp eglot dap-mode bicycle ace-jump-mode)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -41,3 +41,4 @@
 ;; org-roam config
 (org-roam-db-autosync-mode)
 (put 'projectile-ag 'disabled nil)
+(put 'customize-group 'disabled nil)

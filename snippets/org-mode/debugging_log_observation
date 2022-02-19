@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: observation header in debugging logs
+# key: do
+# condition: t
+# --
+
+OBSERVATION: $1

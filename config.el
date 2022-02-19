@@ -62,31 +62,10 @@
  'org-babel-load-languages
  '((ipython . t)
    (jupyter . t)
-   ;; (python . t) ;; not sure if i need this.
-
-   ))
-
-;; org-roam-bibtex
- (use-package! org-roam-bibtex
-  :after (org-roam)
-  :hook (org-roam-mode . org-roam-bibtex-mode)
-  :config
-  (require 'org-ref)
-  (setq org-roam-bibtex-preformat-keywords
-   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
-  (setq orb-templates
-        '(("r" "ref" plain (function org-roam-capture--get-point)
-           ""
-           :file-name "${slug}"
-           :head "#+TITLE: ${=key=}: ${title}\n#+ROAM_KEY: ${ref}
-
-- tags ::
-- keywords :: ${keywords}
-
-\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n  :NOTER_PAGE: \n  :END:\n\n"
-
-           :unnarrowed t))))
-
+   (scala . t)
+   (go . t  )
+   (python . t)
+   (julia . t)))
 
 (defun bh/hide-other ()
   (interactive)
@@ -728,78 +707,6 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
          org-ref-notes-function 'orb-edit-notes
     )
 
-;; org-noter
- (use-package! org-noter
-  :after (:any org pdf-view)
-  :config
-  (setq
-   ;; The WM can handle splits
-   org-noter-notes-window-location 'other-frame
-   ;; Please stop opening frames
-   org-noter-always-create-frame nil
-   ;; I want to see the whole file
-   org-noter-hide-other nil
-   ;; Everything is relative to the main notes file
-   org-noter-notes-search-path (list org_notes))
-   (require 'org-noter-pdftools)
-  )
-
-;; I am not sure what this do exactly. What even is the differences between pdf-tools and org-pdf-tools
-;; ;; pdf-tools
-;; (use-package pdf-tools
-;;    :pin manual
-;;    :config
-;;    (pdf-tools-install)
-;;    (setq-default pdf-view-display-size 'fit-width)
-;;    (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
-;;    :custom
-;;    (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
-
-;; (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-;;       TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-;;       TeX-source-correlate-start-server t)
-
-(add-hook 'TeX-after-compilation-finished-functions
-          #'TeX-revert-document-buffer)
-
-;; org-pdftools
-(use-package! org-pdftools
-  :hook (org-mode . org-pdftools-setup-link))
-
-;;org-noter-pdftools
-(use-package! org-noter-pdftools
-  :after org-noter
-  :config
-  ;; Add a function to ensure precise note is inserted
-  (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((org-noter-insert-note-no-questions (if toggle-no-questions
-                                                   (not org-noter-insert-note-no-questions)
-                                                 org-noter-insert-note-no-questions))
-           (org-pdftools-use-isearch-link t)
-           (org-pdftools-use-freestyle-annot t))
-       (org-noter-insert-note (org-noter--get-precise-info)))))
-
-  ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
-  (defun org-noter-set-start-location (&optional arg)
-    "When opening a session with this document, go to the current location.
-With a prefix ARG, remove start location."
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((inhibit-read-only t)
-           (ast (org-noter--parse-root))
-           (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
-       (with-current-buffer (org-noter--session-notes-buffer session)
-         (org-with-wide-buffer
-          (goto-char (org-element-property :begin ast))
-          (if arg
-              (org-entry-delete nil org-noter-property-note-location)
-            (org-entry-put nil org-noter-property-note-location
-                           (org-noter--pretty-print-location location))))))))
-  (with-eval-after-load 'pdf-annot
-    (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
-
 
 ;; org-roam
 (setq org-roam-directory (expand-file-name (or org-roam-directory "roam")
@@ -819,9 +726,6 @@ With a prefix ARG, remove start location."
 
 
 
-;; (set-fringe-style (quote (12 . 8)))
-
-
 ;; (use-package python-mode
 ;;   :ensure t
 ;;   :hook (python-mode . lsp-deffered)
@@ -838,16 +742,6 @@ With a prefix ARG, remove start location."
 
 ;; org-drill
 (add-to-list 'load-path "~/org/space-repetition/")
-
-
-;; unhighlight all highlight that is highlighted by hi-lock
-;; ref: https://emacs.stackexchange.com/questions/19861/how-to-unhighlight-symbol-highlighted-with-highlight-symbol-at-point
-(defun anak/unhighlight-all-in-buffer ()
-  "Remove all highlights made by `hi-lock' from the current buffer.
-The same result can also be be achieved by \\[universal-argument] \\[unhighlight-regexp]."
-  (interactive)
-  (unhighlight-regexp t))
-
 
 ;; org-tree-slide
 (defun efs/presentation-setup ()
@@ -952,15 +846,419 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
 
 ;; set pdf-view-mode as default
 (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
+(add-to-list 'auto-mode-alist '("\\.mermaid\\'" . mermaid-mode))
 ;; Uncategorized Configuration:1 ends here
 
-;; [[file:config.org::*Emacs][Emacs:1]]
+;; [[file:config.org::*highlighting words and symbols][highlighting words and symbols:1]]
+;; unhighlight all highlight that is highlighted by hi-lock
+;; ref: https://emacs.stackexchange.com/questions/19861/how-to-unhighlight-symbol-highlighted-with-highlight-symbol-at-point
+(defun anak/unhighlight-all-in-buffer ()
+  "Remove all highlights made by `hi-lock' from the current buffer.
+The same result can also be be achieved by \\[universal-argument] \\[unhighlight-regexp]."
+  (interactive)
+  (unhighlight-regexp t))
+;; highlighting words and symbols:1 ends here
+
+;; [[file:config.org::*main highlight-indentation code][main highlight-indentation code:1]]
+;;; highlight-indentation.el --- Minor modes for highlighting indentation
+;; Author: Anton Johansson <anton.johansson@gmail.com> - http://antonj.se
+;; Created: Dec 15 23:42:04 2010
+;; Version: 0.7.0
+;; URL: https://github.com/antonj/Highlight-Indentation-for-Emacs
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2 of
+;; the License, or (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be
+;; useful, but WITHOUT ANY WARRANTY; without even the implied
+;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;; PURPOSE.  See the GNU General Public License for more details.
+;;
+;;; Commentary:
+;; Customize `highlight-indentation-face', and
+;; `highlight-indentation-current-column-face' to suit your theme.
+
+;;; Code:
+
+(defgroup highlight-indentation nil
+  "Highlight Indentation"
+  :prefix "highlight-indentation-"
+  :group 'basic-faces)
+
+(defface highlight-indentation-face
+  ;; Fringe has non intrusive color in most color-themes
+  '((t :inherit fringe))
+  "Basic face for highlighting indentation guides."
+  :group 'highlight-indentation)
+
+(defcustom highlight-indentation-offset
+  (if (and (boundp 'standard-indent) standard-indent) standard-indent 2)
+  "Default indentation offset, used if no other can be found from
+  major mode. This value is always used by
+  `highlight-indentation-mode' if set buffer local. Set buffer
+  local with `highlight-indentation-set-offset'"
+  :type 'integer
+  :group 'highlight-indentation)
+
+(defcustom highlight-indentation-blank-lines nil
+  "Show indentation guides on blank lines.  Experimental.
+
+Known issues:
+- Doesn't work well with completion popups that use overlays
+- Overlays on blank lines sometimes aren't cleaned up or updated perfectly
+  Can be refreshed by scrolling
+- Not yet implemented for highlight-indentation-current-column-mode
+- May not work perfectly near the bottom of the screen
+- Point appears after indent guides on blank lines"
+  :type 'boolean
+  :group 'highlight-indentation)
+
+(defvar highlight-indentation-overlay-priority 1)
+(defvar highlight-indentation-current-column-overlay-priority 2)
+
+(defconst highlight-indentation-hooks
+  '((after-change-functions (lambda (start end length)
+                              (highlight-indentation-redraw-region
+                               start end
+                               'highlight-indentation-overlay
+                               'highlight-indentation-put-overlays-region))
+                            t t)
+    (window-scroll-functions (lambda (win start)
+                               (highlight-indentation-redraw-window
+                                win
+                                'highlight-indentation-overlay
+                                'highlight-indentation-put-overlays-region
+                                start))
+                             nil t)))
+
+(defun highlight-indentation-get-buffer-windows (&optional all-frames)
+  "Return a list of windows displaying the current buffer."
+  (get-buffer-window-list (current-buffer) 'no-minibuf all-frames))
+
+(defun highlight-indentation-delete-overlays-buffer (overlay)
+  "Delete all overlays in the current buffer."
+  (save-restriction
+    (widen)
+    (highlight-indentation-delete-overlays-region (point-min) (point-max) overlay)))
+
+(defun highlight-indentation-delete-overlays-region (start end overlay)
+  "Delete overlays between START and END."
+  (mapc #'(lambda (o)
+            (if (overlay-get o overlay) (delete-overlay o)))
+        (overlays-in start end)))
+
+(defun highlight-indentation-redraw-window (win overlay func &optional start)
+  "Redraw win starting from START."
+  (highlight-indentation-redraw-region (or start (window-start win)) (window-end win t) overlay func))
+
+(defun highlight-indentation-redraw-region (start end overlay func)
+  "Erase and read overlays between START and END."
+  (save-match-data
+    (save-excursion
+      (let ((inhibit-point-motion-hooks t)
+            (start (save-excursion (goto-char start) (beginning-of-line) (point)))
+
+            (end (save-excursion (goto-char end) (line-beginning-position 2))))
+        (highlight-indentation-delete-overlays-region start end overlay)
+        (funcall func start end overlay)))))
+
+(defun highlight-indentation-redraw-all-windows (overlay func &optional all-frames)
+  "Redraw the all windows showing the current buffer."
+  (dolist (win (highlight-indentation-get-buffer-windows all-frames))
+    (highlight-indentation-redraw-window win overlay func)))
+
+(defun highlight-indentation-put-overlays-region (start end overlay)
+  "Place overlays between START and END."
+  (goto-char end)
+  (let (o ;; overlay
+        (last-indent 0)
+        (last-char 0)
+        (pos (point))
+        (loop t))
+    (while (and loop
+                (>= pos start))
+      (save-excursion
+        (beginning-of-line)
+        (let ((c 0)
+              (cur-column (current-column)))
+          (while (and (setq c (char-after))
+                      (integerp c)
+                      (not (= 10 c)) ;; newline
+                      (= 32 c)) ;; space
+            (when (= 0 (% cur-column highlight-indentation-offset))
+              (let ((p (point)))
+                (setq o (make-overlay p (+ p 1))))
+              (overlay-put o overlay t)
+              (overlay-put o 'priority highlight-indentation-overlay-priority)
+              (overlay-put o 'face 'highlight-indentation-face))
+            (forward-char)
+            (setq cur-column (current-column)))
+          (when (and highlight-indentation-blank-lines
+                     (integerp c)
+                     (or (= 10 c)
+                         (= 13 c)))
+            (when (< cur-column last-indent)
+              (let ((column cur-column)
+                    (s nil)
+                    (show t)
+                    num-spaces)
+                (while (< column last-indent)
+                  (if (>= 0
+                          (setq num-spaces
+                                (%
+                                 (- last-indent column)
+                                 highlight-indentation-offset)))
+                      (progn
+                        (setq num-spaces (1- highlight-indentation-offset))
+                        (setq show t))
+                    (setq show nil))
+                  (setq s (cons (concat
+                                 (if show
+                                     (propertize " "
+                                                 'face
+                                                 'highlight-indentation-face)
+                                   "")
+                                 (make-string num-spaces 32))
+                                s))
+                  (setq column (+ column num-spaces (if show 1 0))))
+                (setq s (apply 'concat (reverse s)))
+                (let ((p (point)))
+                  (setq o (make-overlay p p)))
+                (overlay-put o overlay t)
+                (overlay-put o 'priority highlight-indentation-overlay-priority)
+                (overlay-put o 'after-string s))
+              (setq cur-column last-indent)))
+          (setq last-indent (* highlight-indentation-offset
+                               (ceiling (/ (float cur-column)
+                                           highlight-indentation-offset))))))
+      (when (= pos start)
+        (setq loop nil))
+      (forward-line -1) ;; previous line
+      (setq pos (point)))))
+
+(defun highlight-indentation-guess-offset ()
+  "Get indentation offset of current buffer."
+  (cond ((and (eq major-mode 'python-mode) (boundp 'python-indent))
+         python-indent)
+        ((and (eq major-mode 'python-mode) (boundp 'py-indent-offset))
+         py-indent-offset)
+        ((and (eq major-mode 'python-mode) (boundp 'python-indent-offset))
+         python-indent-offset)
+        ((and (eq major-mode 'ruby-mode) (boundp 'ruby-indent-level))
+         ruby-indent-level)
+        ((and (eq major-mode 'scala-mode) (boundp 'scala-indent:step))
+         scala-indent:step)
+        ((and (eq major-mode 'scala-mode) (boundp 'scala-mode-indent:step))
+         scala-mode-indent:step)
+        ((and (or (eq major-mode 'scss-mode) (eq major-mode 'css-mode)) (boundp 'css-indent-offset))
+         css-indent-offset)
+        ((and (eq major-mode 'nxml-mode) (boundp 'nxml-child-indent))
+         nxml-child-indent)
+        ((and (eq major-mode 'coffee-mode) (boundp 'coffee-tab-width))
+         coffee-tab-width)
+        ((and (eq major-mode 'js-mode) (boundp 'js-indent-level))
+         js-indent-level)
+        ((and (eq major-mode 'js2-mode) (boundp 'js2-basic-offset))
+         js2-basic-offset)
+        ((and (fboundp 'derived-mode-class) (eq (derived-mode-class major-mode) 'sws-mode) (boundp 'sws-tab-width))
+         sws-tab-width)
+        ((and (eq major-mode 'web-mode) (boundp 'web-mode-markup-indent-offset))
+         web-mode-markup-indent-offset) ; other similar vars: web-mode-{css-indent,scripts}-offset
+        ((and (eq major-mode 'web-mode) (boundp 'web-mode-html-offset)) ; old var
+         web-mode-html-offset)
+        ((and (local-variable-p 'c-basic-offset) (boundp 'c-basic-offset))
+         c-basic-offset)
+        ((and (eq major-mode 'yaml-mode) (boundp 'yaml-indent-offset))
+         yaml-indent-offset)
+        ((and (eq major-mode 'elixir-mode) (boundp 'elixir-smie-indent-basic))
+         elixir-smie-indent-basic)
+        (t
+         (default-value 'highlight-indentation-offset))))
+
+;;;###autoload
+(define-minor-mode highlight-indentation-mode
+  "Highlight indentation minor mode highlights indentation based on spaces"
+  :lighter " ||"
+  (when (not highlight-indentation-mode) ;; OFF
+    (highlight-indentation-delete-overlays-buffer 'highlight-indentation-overlay)
+    (dolist (hook highlight-indentation-hooks)
+      (remove-hook (car hook) (nth 1 hook) (nth 3 hook))))
+
+  (when highlight-indentation-mode ;; ON
+    (when (not (local-variable-p 'highlight-indentation-offset))
+      (set (make-local-variable 'highlight-indentation-offset)
+           (highlight-indentation-guess-offset)))
+
+    ;; Setup hooks
+    (dolist (hook highlight-indentation-hooks)
+      (apply 'add-hook hook))
+    (highlight-indentation-redraw-all-windows 'highlight-indentation-overlay
+                                              'highlight-indentation-put-overlays-region)))
+
+;;;###autoload
+(defun highlight-indentation-set-offset (offset)
+  "Set indentation offset locally in buffer, will prevent
+highlight-indentation from trying to guess indentation offset
+from major mode"
+  (interactive
+   (if (and current-prefix-arg (not (consp current-prefix-arg)))
+       (list (prefix-numeric-value current-prefix-arg))
+     (list (read-number "Indentation offset: "))))
+  (set (make-local-variable 'highlight-indentation-offset) offset)
+  (when highlight-indentation-mode
+    (highlight-indentation-mode)))
+
+;;; This minor mode will highlight the indentation of the current line
+;;; as a vertical bar (grey background color) aligned with the column of the
+;;; first character of the current line.
+(defface highlight-indentation-current-column-face
+  ;; Fringe has non intrusive color in most color-themes
+  '((t (:background "black")))
+  "Basic face for highlighting indentation guides."
+  :group 'highlight-indentation)
+
+(defconst highlight-indentation-current-column-hooks
+  '((post-command-hook (lambda ()
+                         (highlight-indentation-redraw-all-windows 'highlight-indentation-current-column-overlay
+                                                                   'highlight-indentation-current-column-put-overlays-region)) nil t)))
+
+(defun highlight-indentation-current-column-put-overlays-region (start end overlay)
+  "Place overlays between START and END."
+  (let (o ;; overlay
+        (last-indent 0)
+        (indent (save-excursion (back-to-indentation) (current-column)))
+        (pos start))
+    (goto-char start)
+    ;; (message "doing it %d" indent)
+    (while (< pos end)
+      (beginning-of-line)
+      (while (and (integerp (char-after))
+                  (not (= 10 (char-after))) ;; newline
+                  (= 32 (char-after))) ;; space
+        (when (= (current-column) indent)
+          (setq pos (point)
+                last-indent pos
+                o (make-overlay pos (+ pos 1)))
+          (overlay-put o overlay t)
+          (overlay-put o 'priority highlight-indentation-current-column-overlay-priority)
+          (overlay-put o 'face 'highlight-indentation-current-column-face))
+        (forward-char))
+      (forward-line) ;; Next line
+      (setq pos (point)))))
+
+;;;###autoload
+(define-minor-mode highlight-indentation-current-column-mode
+  "Highlight Indentation minor mode displays a vertical bar
+corresponding to the indentation of the current line"
+  :lighter " |"
+
+  (when (not highlight-indentation-current-column-mode) ;; OFF
+    (highlight-indentation-delete-overlays-buffer 'highlight-indentation-current-column-overlay)
+    (dolist (hook highlight-indentation-current-column-hooks)
+      (remove-hook (car hook) (nth 1 hook) (nth 3 hook))))
+
+  (when highlight-indentation-current-column-mode ;; ON
+    (when (not (local-variable-p 'highlight-indentation-offset))
+      (set (make-local-variable 'highlight-indentation-offset)
+           (highlight-indentation-guess-offset)))
+
+    ;; Setup hooks
+    (dolist (hook highlight-indentation-current-column-hooks)
+      (apply 'add-hook hook))
+    (highlight-indentation-redraw-all-windows 'highlight-indentation-current-column-overlay
+                                              'highlight-indentation-current-column-put-overlays-region)))
+
+;; (provide 'highlight-indentation)
+
+;;; highlight-indentation.el ends here
+;; main highlight-indentation code:1 ends here
+
+;; [[file:config.org::*toggle folds based on indentation levels][toggle folds based on indentation levels:1]]
+(defun anak/toggle-fold ()
+  "Toggle fold all lines larger than indentation on current line"
+  (interactive)
+  (let ((col 1))
+    (save-excursion
+      (back-to-indentation)
+      (setq col (+ 1 (current-column)))
+      (set-selective-display
+       (if selective-display nil (or col 1))))))
+;; (global-set-key [(M C i)] 'aj-toggle-fold)
+;; (global-set-key (kbd "z a") 'anak/toggle-fold)
+(map! :n "z a" #'anak/toggle-fold)
+;; toggle folds based on indentation levels:1 ends here
+
+;; [[file:config.org::*insert current date][insert current date:1]]
+;; ref: https://www.emacswiki.org/emacs/InsertingTodaysDate
+;; inserting todays date using shell
+(defun anak/insert-current-date ()
+  (interactive)
+  (insert (calendar-date-string (calendar-current-date) nil t)))
+;; insert current date:1 ends here
+
+;; [[file:config.org::*benchmarking][benchmarking:1]]
+
+;; benchmarking:1 ends here
+
+;; [[file:config.org::*basic configuration][basic configuration:1]]
 (setq desktop-save-mode nil)
 (setq load-prefer-newer t)
-;; Emacs:1 ends here
+(setq which-function-mode t)
+;; basic configuration:1 ends here
+
+;; [[file:config.org::*configuration to increase ease of editing.][configuration to increase ease of editing.:1]]
+;; recommended by https://dr-knz.net/a-tour-of-emacs-as-go-editor.html
+(global-visual-line-mode 1)
+(global-hl-line-mode 1)
+(show-paren-mode 1)
+;; configuration to increase ease of editing.:1 ends here
+
+;; [[file:config.org::*configuration to encourage code formating syle][configuration to encourage code formating syle:1]]
+;; recommended by https://dr-knz.net/a-tour-of-emacs-as-go-editor.html
+(global-whitespace-mode 1)
+;; see the apropos entry for whitespace-style
+(setq
+   whitespace-style
+   '(face ; viz via faces
+     trailing ; trailing blanks visualized
+     ;; tabs
+     ;; tab-mark
+     ;; indentation::tab
+     ; lines-tail ; lines beyond
+                ; whitespace-line-column
+     space-before-tab
+     space-after-tab
+     newline ; lines with only blanks
+     indentation ; spaces used for indent
+                 ; when config wants tabs
+     empty ; empty lines at beginning or end
+     )
+   whitespace-line-column 100 ; column at which
+        ; whitespace-mode says the line is too long
+)
+
+(add-to-list 'browse-url-filename-alist '("^~+" . "file:///home/awannaphasch2016"))
+;; configuration to encourage code formating syle:1 ends here
+
+;; [[file:config.org::*Using exec-path-from-shell][Using exec-path-from-shell:1]]
+;; ;; If you launch Emacs as a daemon from systemd or similar, you might like to use the following snippet:
+;; (when (daemonp)
+;;   (exec-path-from-shell-initialize))
+
+;; ;; Below is used when you execute in a GUI frame on OS X and linux. This sets $MANPATH, $PATH and exec-path from your shell.
+;; (when (memq window-system '(mac ns x))
+;;   (exec-path-from-shell-initialize))
+;; Using exec-path-from-shell:1 ends here
+
+;; [[file:config.org::*Python Environment][Python Environment:1]]
+;; (setenv "WORKON_HOME" "~/anaconda3/envs/" )
+;; (pyvenv-mode 1)
+;; Python Environment:1 ends here
 
 ;; [[file:config.org::*simple-httpd][simple-httpd:1]]
-(use-package simple-httpd)
+(use-package! simple-httpd)
 ;; simple-httpd:1 ends here
 
 ;; [[file:config.org::*Bookmark][Bookmark:1]]
@@ -988,9 +1286,11 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
 ;; ERC (IRC client):1 ends here
 
 ;; [[file:config.org::*Emacs Tree Sitter][Emacs Tree Sitter:1]]
+;; ref: https://emacs-tree-sitter.github.io/syntax-highlighting/
 (global-tree-sitter-mode)
-(add-hook 'rustic-mode-hook #'tree-sitter-hl-mode)
-(add-hook 'python-mode-hook #'tree-sitter-hl-mode)
+;; (add-hook 'rustic-mode-hook #'tree-sitter-hl-mode)
+;; (add-hook 'python-mode-hook #'tree-sitter-hl-mode)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode) ;; enable whenever possible
 ;; Emacs Tree Sitter:1 ends here
 
 ;; [[file:config.org::*Windows][Windows:1]]
@@ -1001,10 +1301,124 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
 (map! :leader "w f" #'find-file-other-window)
 ;; Windows:1 ends here
 
+;; [[file:config.org::*Python Modes][Python Modes:1]]
+;; (add-to-list 'exec-path "~/anaconda3/envs/py38/lib/python3.8/site-packages/") ;; may not need it
+(add-hook 'python-mode-hook 'highlight-indentation-mode)
+;; Python Modes:1 ends here
+
+;; [[file:config.org::*TLA+ Mode][TLA+ Mode:1]]
+(add-to-list 'load-path "~/.emacs.d/manual-install/tlamode/lisp/")
+(require 'tla+-mode)
+(setq tla+-tlatools-path "~/.emacs.d/manual-install/tlamode/")
+;; TLA+ Mode:1 ends here
+
+;; [[file:config.org::*Go Mode][Go Mode:1]]
+;; get the PATH environment
+(defun set-exec-path-from-shell-PATH ()
+  (let ((path-from-shell (replace-regexp-in-string
+                          "[ \t\n]*$"
+                          ""
+                          (shell-command-to-string "$SHELL --login -i -c 'echo $PATH'"))))
+    (setenv "PATH" path-from-shell)
+    (setq eshell-path-env path-from-shell) ; for eshell users
+    (setq exec-path (split-string path-from-shell path-separator))))
+
+(when window-system (set-exec-path-from-shell-PATH))
+;; Go Mode:1 ends here
+
+;; [[file:config.org::*Go Mode][Go Mode:2]]
+;; (setenv "GOPATH" "/home/awannaphasch2016/org/projects/sideprojects/blockchains/go")
+;; Go Mode:2 ends here
+
+;; [[file:config.org::*Go Mode][Go Mode:3]]
+;; (add-to-list 'exec-path "/usr/local/go/bin/")
+;; (add-hook 'before-save-hook 'gofmt-before-save)
+;; Go Mode:3 ends here
+
+;; [[file:config.org::*Go Mode][Go Mode:4]]
+(add-hook 'go-mode-hook (lambda ()
+                               (setq tab-width 4)))
+;; Go Mode:4 ends here
+
+;; [[file:config.org::*Web Mode][Web Mode:1]]
+(map! :leader "m e j" #'web-mode-element-sibling-next)
+(map! :leader "m e k" #'web-mode-element-sibling-previous)
+(eval-after-load 'web-mode
+  '(define-key web-mode-map (kbd "C-c b") 'web-beautify-html))
+;; Web Mode:1 ends here
+
+;; [[file:config.org::*lispy][lispy:1]]
+(use-package lispy
+    :custom
+    (map! ";" #'lispy-comment)
+  )
+;; lispy:1 ends here
+
+;; [[file:config.org::*lispyville][lispyville:1]]
+;; (add-hook 'emacs-lisp-mode-hook #'lispyville-mode)
+;; lispyville:1 ends here
+
+;; [[file:config.org::*Scala Mode][Scala Mode:1]]
+;; ref: https://ag91.github.io/blog/2020/10/16/my-emacs-setup-for-scala-development/
+(use-package scala-mode
+  :mode "\\.s\\(cala\\|bt\\)$"
+  :config
+    (load-file "~/.emacs.d/.local/straight/repos/org/lisp/ob-scala.el"))
+;; Scala Mode:1 ends here
+
+;; [[file:config.org::*cfn lint][cfn lint:1]]
+;; Set up a mode for JSON based templates
+
+(define-derived-mode cfn-json-mode js-mode
+    "CFN-JSON"
+    "Simple mode to edit CloudFormation template in JSON format."
+    (setq js-indent-level 2))
+
+(add-to-list 'magic-mode-alist
+             '("\\({\n *\\)? *[\"']AWSTemplateFormatVersion" . cfn-json-mode))
+
+;; Set up a mode for YAML based templates if yaml-mode is installed
+;; Get yaml-mode here https://github.com/yoshiki/yaml-mode
+(when (featurep 'yaml-mode)
+
+  (define-derived-mode cfn-yaml-mode yaml-mode
+    "CFN-YAML"
+    "Simple mode to edit CloudFormation template in YAML format.")
+
+  (add-to-list 'magic-mode-alist
+               '("\\(---\n\\)?AWSTemplateFormatVersion:" . cfn-yaml-mode)))
+
+;; Set up cfn-lint integration if flycheck is installed
+;; Get flycheck here https://www.flycheck.org/
+(when (featurep 'flycheck)
+  (flycheck-define-checker cfn-lint
+    "AWS CloudFormation linter using cfn-lint.
+
+Install cfn-lint first: pip install cfn-lint
+
+See `https://github.com/aws-cloudformation/cfn-python-lint'."
+
+    :command ("cfn-lint" "-f" "parseable" source)
+    :error-patterns ((warning line-start (file-name) ":" line ":" column
+                              ":" (one-or-more digit) ":" (one-or-more digit) ":"
+                              (id "W" (one-or-more digit)) ":" (message) line-end)
+                     (error line-start (file-name) ":" line ":" column
+                            ":" (one-or-more digit) ":" (one-or-more digit) ":"
+                            (id "E" (one-or-more digit)) ":" (message) line-end))
+    :modes (cfn-json-mode cfn-yaml-mode))
+
+  (add-to-list 'flycheck-checkers 'cfn-lint)
+  (add-hook 'cfn-json-mode-hook 'flycheck-mode)
+  (add-hook 'cfn-yaml-mode-hook 'flycheck-mode))
+;; cfn lint:1 ends here
+
 ;; [[file:config.org::*Dap Mode][Dap Mode:1]]
 ;; dap-mode
 (require 'dap-mode)
 (require 'dap-ui)
+;; (require 'dap-lldb)
+(require 'dap-cpptools)
+(require 'dap-gdb-lldb)
 (require 'dap-python)
 
 (map! :leader "d d" #'dap-debug) ;; d for debug
@@ -1026,17 +1440,99 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
 (map! :leader "d u s" #'dap-ui-sessions)
 ;; Enabling only some features
 (setq dap-auto-configure-features '(sessions locals controls expressions tooltip))
+(setq dap-python-debugger 'debugpy)
 ;; Dap Mode:1 ends here
 
 ;; [[file:config.org::*LSP-mode][LSP-mode:1]]
-;; (use-package lsp-pyright
-;;   :ensure t
-;;   :hook (python-mode . (lambda ()
-;;                           (require 'lsp-pyright)
-;;                           (lsp))))  ; or lsp-deferred
-(setq lsp-pylsp-plugins-flake8-enabled nil)
+;; ref: https://scalameta.org/metals/docs/editors/emacs/
+(use-package lsp-mode
+  ;; Optional - enable lsp-mode automatically in scala files
+  :hook  (scala-mode . lsp)
+         ;; (lsp-mode . lsp-lens-mode)
+  :config
+  ;; Uncomment following section if you would like to tune lsp-mode performance according to
+  ;; https://emacs-lsp.github.io/lsp-mode/page/performance/
+  ;;       (setq gc-cons-threshold 100000000) ;; 100mb
+  ;;       (setq read-process-output-max (* 1024 1024)) ;; 1mb
+  ;;       (setq lsp-idle-delay 0.500)
+  ;;       (setq lsp-log-io nil)
+  ;;       (setq lsp-completion-provider :capf)
+  (setq lsp-prefer-flymake nil))
+
+(require 'lsp-mode)
+;; enable lsp breadcrumb on headline
+(setq lsp-headerline-breadcrumb-enable t)
+(setq lsp-headerline-breadcrumb-segments '(project file symbols))
+(setq lsp-headerline-breadcrumb-icons-enable t)
+;; disable mspyls client for python mode
+;; lsp is too goddamn slow for python-mode, so I turn disable all of them.
+;; (setq lsp-disabled-clients '((python-mode . mspyls) (python-mode . pyls) (python-mode . pylsp)))
+(setq lsp-disabled-clients '((python-mode . mspyls) (python-mode . pyls) (python-mode . pylsp)))
+;; (setq lsp-disabled-clients '((python-mode . mspyls) (python-mode . pyls)))
+;; (setq lsp-disabled-clients '((go-mode . gopls)))
 ;; (+lsp/switch-client pyls) ; this doesn't work.
 ;; LSP-mode:1 ends here
+
+;; [[file:config.org::*pyright setup][pyright setup:1]]
+;; ref: https://github.com/emacs-lsp/lsp-pyright
+(use-package lsp-pyright
+  :ensure t
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))  ; or lsp-deferred
+;; pyright setup:1 ends here
+
+;; [[file:config.org::*pylsp setup][pylsp setup:1]]
+(setq lsp-pylsp-plugins-flake8-enabled nil)
+;; pylsp setup:1 ends here
+
+;; [[file:config.org::*lsp for Go][lsp for Go:1]]
+;; (add-hook 'go-mode-hook #'lsp)
+(add-hook 'go-mode-hook #'lsp-deferred)
+
+;; config below is obtained from https://github.com/golang/tools/blob/master/gopls/doc/emacs.md#configuring-lsp-mode
+;; Set up before-save hooks to format buffer and add/delete imports.
+;; Make sure you don't have other gofmt/goimports hooks enabled.
+;; (defun lsp-go-install-save-hooks ()
+;;   (add-hook 'before-save-hook #'lsp-format-buffer t t)
+;;   (add-hook 'before-save-hook #'lsp-organize-imports t t))
+;; (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+;; lsp for Go:1 ends here
+
+;; [[file:config.org::*lsp for Go][lsp for Go:2]]
+(lsp-register-custom-settings
+ '(("gopls.completeUnimported" t t)
+   ("gopls.staticcheck" t t)))
+;; lsp for Go:2 ends here
+
+;; [[file:config.org::*lsp for Go][lsp for Go:3]]
+;; (add-to-list 'exec-path "/usr/local/go/bin")
+;; (add-to-list 'exec-path "/usr/local/go/bin/go")
+;; (add-to-list 'exec-path "/home/awannaphasch2016/go/bin")
+;; (add-to-list 'exec-path "/home/awannaphasch2016/go/bin/go")
+;; (add-to-list 'exec-path "/home/awannaphasch2016/go/bin/gopls")
+;; lsp for Go:3 ends here
+
+;; [[file:config.org::*lsp for scala][lsp for scala:1]]
+(use-package! lsp-metals
+  ;; :custom
+  ;; ;; Metals claims to support range formatting by default but it supports range
+  ;; ;; formatting of multiline strings only. You might want to disable it so that
+  ;; ;; emacs can use indentation provided by scala-mode.
+  ;; (lsp-metals-server-args '("-J-Dmetals.allow-multiline-string-formatting=off"))
+  :hook (scala-mode . lsp))
+;; lsp for scala:1 ends here
+
+;; [[file:config.org::*lsp for C language family][lsp for C language family:1]]
+;; config is taken from ~/.emacs.d/modules/lang/cc/README.org
+(setq lsp-clients-clangd-args '("-j=3"
+                                "--background-index"
+                                "--clang-tidy"
+                                "--completion-style=detailed"
+                                "--header-insertion=never"
+                                "--header-insertion-decorators=0"))
+(after! lsp-clangd (set-lsp-priority! 'clangd 2))
+;; lsp for C language family:1 ends here
 
 ;; [[file:config.org::*evil-paredit][evil-paredit:1]]
 ;; (add-hook 'emacs-lisp-mode-hook 'evil-paredit-mode)
@@ -1046,19 +1542,31 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
 ;; (add-hook 'prog-mode-hook 'paredit-everywhere-mode)
 ;; paredit-everywhere:1 ends here
 
-;; [[file:config.org::*Dap Mode =debug.el= Configuration][Dap Mode =debug.el= Configuration:1]]
-(dap-register-debug-template
-  "Python :: Run train_self_supervised (buffer)"
-  (list :type "python"
-        :name "gdb::run with arguments"
-        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
-        :args (list "-d" "reddit" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10")
-        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
-        :cwd nil
-        :module nil
-        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
-        :request "launch"))
+;; [[file:config.org::*Semantic mode][Semantic mode:1]]
+;; (advice-add 'semantic-idle-scheduler-function :around #'ignore) ;; keep it uncomment  I never use it, but put it here for context.
+;; Semantic mode:1 ends here
 
+;; [[file:config.org::*Semantic Stickyfunc mode][Semantic Stickyfunc mode:1]]
+;; ref: https://emacs.stackexchange.com/questions/3145/display-the-beginning-of-a-scope-when-it-is-out-of-screen
+;; (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode)
+;; (semantic-mode 1)
+;; (require 'stickyfunc-enhance)
+;; Semantic Stickyfunc mode:1 ends here
+
+;; [[file:config.org::*format-all][format-all:1]]
+(setq +format-on-save-enabled-modes '(not emacs-lisp-mode sql-mode tex-mode latex-mode org-msg-edit-mode python-mode))
+;; format-all:1 ends here
+
+;; [[file:config.org::*flycheck][flycheck:1]]
+;; (setq flycheck-global-modes '(not python-mode))
+;; flycheck:1 ends here
+
+;; [[file:config.org::*Helm][Helm:1]]
+;; conduct search on symbol (it can be used in complementary to M-x consult-imenu. They suppose to do the same thing, but differ in few important aspect.)
+(map! :leader "s h" #'helm-semantic-or-imenu)
+;; Helm:1 ends here
+
+;; [[file:config.org::*Dap Mode =debug.el= Configuration][Dap Mode =debug.el= Configuration:1]]
 (dap-register-debug-template
   "Python :: Run file (preprocess expert labels)"
   (list :type "python"
@@ -1071,13 +1579,223 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
         :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/utils/preprocess_data.py"
         :request "launch"))
 
+;; train_self_supervised (aka link prediction)
+
+(dap-register-debug-template
+ "Python :: Run file (train_self_supervised + tuning)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--run_tuning" "--n_tuning_samples" "4")
+        :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--run_tuning" "--n_tuning_samples" "4")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run train_self_supervised (buffer)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        :args (list "-d" "reddit" "--use_memory" "--n_runs" "5")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd nil
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 10000 expert labels + update memory at the end)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--n_runs" "10" "--n_epoch" "5" "--memory_update_at_end")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 10000 labels)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5")
+        :args (list "-d" "wikipedia_10000" "--use_memory" "--n_runs" "10" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "1" "--use_ef_iwf_weight" "--custom_prefix" "tmp" "--ws_framework" "forward" "--use_time_decay")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 10000 expert labels + use_ef_iwf_weight)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--use_ef_iwf_weight")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 10000 instances + use_nf_iwf_neg_sampling)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        :args (list "-d" "reddit_10000" "--use_memory"  "--n_runs" "1" "--n_epoch" "5" "--use_nf_iwf_neg_sampling")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 10000 instances + use_sigmoid_ef_iwf_weight)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--use_sigmoid_ef_iwf_weight")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 100000 instances + use_ef_iwf_weight)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        :args (list "-d" "reddit_100000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--use_ef_iwf_weight")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised + 10k instances + use_ef_weight)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "1" "--bs" "1000" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "forward" "")
+        :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "1" "--bs" "1000" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "forward" "--use_ef_weight")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised testing args)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "forward"  "--keep_last_n_window_as_window_slides" "3" "--window_stride_multiplier" "2" "--use_nf_weight" "--window_idx_to_start_with" "3" "--disable_cuda")
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "2" "--bs" "1000" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "forward" "--window_stride_multiplier" "1" "--use_nf_weight" "--disable_cuda")
+        :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "ensemble" "--disable_cuda")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised testing args 1)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--use_random_weight_to_benchmark_ef_iwf_1")
+        :args (list "-d" "mooc_10000" "--use_memory" "--n_runs" "5" "--n_epoch" "3" "--bs" "1000" "--ws_multiplier" "1" "--use_ef_iwf_weight" "--custom_prefix" "tmp" "--ws_framework" "forward")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised testing args 2)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--use_random_weight_to_benchmark_ef_iwf_1")
+        :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "1" "--use_ef_iwf_weight" "--custom_prefix" "tmp" "--ws_framework" "forward" "--use_time_decay")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 10000 instances + wikipedia_10000)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :args (list "-d" "reddit_10000" "--use_memory"  "--n_runs" "1" "--n_epoch" "5" "--use_nf_iwf_neg_sampling")
+        :args (list "-d" "wikipedia_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "2"  "--custom_prefix" "tmp" "--ws_framework" "ensemble")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 10000 instances + lastfm_10000)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :args (list "-d" "reddit_10000" "--use_memory"  "--n_runs" "1" "--n_epoch" "5" "--use_nf_iwf_neg_sampling")
+        :args (list "-d" "lastfm_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "2"  "--custom_prefix" "tmp" "--ws_framework" "ensemble")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+       :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_self_supervised with 10000 instances + mooc_10000)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :args (list "-d" "reddit_10000" "--use_memory"  "--n_runs" "1" "--n_epoch" "5" "--use_nf_iwf_neg_sampling")
+        :args (list "-d" "mooc_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "2"  "--custom_prefix" "tmp" "--ws_framework" "ensemble")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
+        :request "launch"))
+
+;; train_supervised (aka node classification)
+
+(dap-register-debug-template
+  "Python :: Run file (train_supervised testing args)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--use_nf_iwf_weight")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
+        :request "launch"))
+
 (dap-register-debug-template
   "Python :: Run file (train_supervised with expert labels)"
   (list :type "python"
         :name "gdb::run with arguments"
         ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
         ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10")
-        :args (list "-d" "reddit_with_expert_labels" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10")
+        ;; :args (list "-d" "reddit_with_expert_labels" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "1" "--n_epoch" "10" "--bs" "5000")
+        :args (list "-d" "reddit_with_expert_labels" "--use_memory" "--n_runs" "1" "--n_epoch" "5")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_supervised with 100000 expert labels)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_100000" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "1" "--n_epoch" "5")
         ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
         :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
         :module nil
@@ -1090,11 +1808,237 @@ The same result can also be be achieved by \\[universal-argument] \\[unhighlight
         :name "gdb::run with arguments"
         ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
         ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
-        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10" "--n_epoch" "50")
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10" "--n_epoch" "5")
         ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
         :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
         :module nil
         :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
         :request "launch"))
 
+(dap-register-debug-template
+  "Python :: Run file (train_supervised with 10000 expert labels + update memory at the end)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10" "--n_epoch" "5" "--memory_update_at_end")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_supervised with 10000 expert labels)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--n_runs" "10" "--n_epoch" "5")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_supervised with 10000 expert labels + random weight)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10" "--n_epoch" "5" "--use_random_weight_to_benchmark_nf_iwf")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_supervised with 10000 expert labels + share_selected_random_weight_per_window)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        ;; :argument "-d reddit --use_memory --prefix tgn-attn-reddit --n_runs=10"
+        ;; :args (list "-d" "reddit_user_id_item_id_relative_freq_and_eq_value_with_label" "--use_memory" "--prefix" "tgn-attn-reddi" "--n_runs" "10"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--n_runs" "10" "--n_epoch" "5" "--use_random_weight_to_benchmark_nf_iwf_1")
+        ;; :args (list "-d" "reddit --use_memory --prefix tgn-attn-reddit --n_runs=10")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_supervised.py"
+        :request "launch"))
+
+(dap-register-debug-template
+  "Python :: Run file (train_supervised testing args 1)"
+  (list :type "python"
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--use_random_weight_to_benchmark_ef_iwf_1")
+        :name "gdb::run with arguments"
+        :args (list "-d" "reddit_with_expert_labels_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "2" "--custom_prefix" "tmp" "--ws_framework" "forward")
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        :module nil
+        :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/tmp.py"
+        :request "launch"))
+
+;; others
+(dap-register-debug-template
+  "Python :: Run buffer (relative to project dir)"
+  (list :type "python"
+        :name "gdb::run with arguments"
+        :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
+        ;; :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/scripts/retrieve_data_from_link_prediction.py"
+        :request "launch"))
 ;; Dap Mode =debug.el= Configuration:1 ends here
+
+;; [[file:config.org::*Edebug][Edebug:1]]
+(set-fringe-style (quote (12 . 8)))
+;; Edebug:1 ends here
+
+;; [[file:config.org::*Garbage colection][Garbage colection:1]]
+;; ref: https://akrl.sdf.org/
+(setq gc-cons-threshold #x40000000)
+
+;; (defun k-time ()
+;;   (- (current-time) ))
+
+(defvar k-gc-timer
+  (run-with-idle-timer 15 t
+                       (lambda () (message "Garbage Collector has run for %.0bfsec"
+                                           (k-time (garbage-collect))))))
+;; Garbage colection:1 ends here
+
+;; [[file:config.org::*Startup time Optimization][Startup time Optimization:1]]
+(defun anak/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections"
+           (format "%s seconds" (float-time (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'anak/display-startup-time)
+;; Startup time Optimization:1 ends here
+
+;; [[file:config.org::*Emacs-Jupyter][Emacs-Jupyter:1]]
+(require 'jupyter)
+(require 'ob-jupyter)
+;; Emacs-Jupyter:1 ends here
+
+;; [[file:config.org::*mermaid][mermaid:1]]
+;; (setq ob-mermaid-cli-path "/usr/local/bin/mmdc")
+;; mermaid:1 ends here
+
+;; [[file:config.org::*Org Mode][Org Mode:1]]
+
+;; Org Mode:1 ends here
+
+;; [[file:config.org::*Org Notes and PDF Tools][Org Notes and PDF Tools:1]]
+;; ;; org-noter
+;;  (use-package! org-noter
+;;   :after (:any org pdf-view)
+;;   :config
+;;   (setq
+;;    ;; The WM can handle splits
+;;    org-noter-notes-window-location 'other-frame
+;;    ;; Please stop opening frames
+;;    org-noter-always-create-frame nil
+;;    ;; I want to see the whole file
+;;    org-noter-hide-other nil
+;;    ;; Everything is relative to the main notes file
+;;    org-noter-notes-search-path (list org_notes))
+;;    (require 'org-noter-pdftools)
+;;   )
+
+;; ;; I am not sure what this do exactly. What even is the differences between pdf-tools and org-pdf-tools
+;; ;; pdf-tools
+;; (use-package pdf-tools
+;;    :pin manual
+;;    :config
+;;    (pdf-tools-install)
+;;    (setq-default pdf-view-display-size 'fit-width)
+;;    (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+;;    :custom
+;;    (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
+
+;; (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+;;       TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+;;       TeX-source-correlate-start-server t)
+
+;; (add-hook 'TeX-after-compilation-finished-functions
+;;           #'TeX-revert-document-buffer)
+
+;; ;; org-pdftools
+;; (use-package! org-pdftools
+;;   :hook (org-mode . org-pdftools-setup-link))
+
+;; ;;org-noter-pdftools
+;; (use-package! org-noter-pdftools
+;;   :after org-noter
+;;   :config
+;;   ;; Add a function to ensure precise note is inserted
+;;   (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
+;;     (interactive "P")
+;;     (org-noter--with-valid-session
+;;      (let ((org-noter-insert-note-no-questions (if toggle-no-questions
+;;                                                    (not org-noter-insert-note-no-questions)
+;;                                                  org-noter-insert-note-no-questions))
+;;            (org-pdftools-use-isearch-link t)
+;;            (org-pdftools-use-freestyle-annot t))
+;;        (org-noter-insert-note (org-noter--get-precise-info)))))
+
+;;   ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
+;;   (defun org-noter-set-start-location (&optional arg)
+;;     "When opening a session with this document, go to the current location.
+;; With a prefix ARG, remove start location."
+;;     (interactive "P")
+;;     (org-noter--with-valid-session
+;;      (let ((inhibit-read-only t)
+;;            (ast (org-noter--parse-root))
+;;            (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
+;;        (with-current-buffer (org-noter--session-notes-buffer session)
+;;          (org-with-wide-buffer
+;;           (goto-char (org-element-property :begin ast))
+;;           (if arg
+;;               (org-entry-delete nil org-noter-property-note-location)
+;;             (org-entry-put nil org-noter-property-note-location
+;;                            (org-noter--pretty-print-location location))))))))
+;;   (with-eval-after-load 'pdf-annot
+;;     (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
+;; Org Notes and PDF Tools:1 ends here
+
+;; [[file:config.org::*Org babel][Org babel:1]]
+(org-babel-lob-ingest "~/org/org-babel-library/library-of-babel.org")
+;; Org babel:1 ends here
+
+;; [[file:config.org::*Org babel][Org babel:2]]
+;; set up recommended by John Kitchin
+;; ref: https://www.youtube.com/watch?v=RD0o2pkJBaI&t=638s&ab_channel=JohnKitchin
+(setq org-babel-default-header-args '((:session . "jupyter-python")
+                                      (:results . "both")
+                                      (:exports . "both")
+                                      (:cache . "no")
+                                      (:noweb . "no")
+                                      (:hlines . "no")
+                                      (:tangle . "no")
+                                      (:eval . "never-export")
+                                      (:kernel . "python3")
+                                      (:pandoc . "t")))
+;; Org babel:2 ends here
+
+;; [[file:config.org::*Org roam bibtex][Org roam bibtex:1]]
+;; org-roam-bibtex
+ (use-package! org-roam-bibtex
+  :after (org-roam)
+  :hook (org-roam-mode . org-roam-bibtex-mode)
+  :config
+  (require 'org-ref)
+  (setq org-roam-bibtex-preformat-keywords
+   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+  (setq orb-templates
+        '(("r" "ref" plain (function org-roam-capture--get-point)
+           ""
+           :file-name "${slug}"
+           :head "#+TITLE: ${=key=}: ${title}\n#+ROAM_KEY: ${ref}
+
+- tags ::
+- keywords :: ${keywords}
+
+\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n  :NOTER_PAGE: \n  :END:\n\n"
+
+           :unnarrowed t))))
+;; Org roam bibtex:1 ends here
