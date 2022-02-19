@@ -114,3 +114,4 @@
 (package! lsp-pyright)
 (package! yankpad)
 (package! org-transclusion)
+(package! ox-reveal)
