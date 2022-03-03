@@ -4,7 +4,33 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(org-agenda-files
-   '("/home/awannaphasch2016/org/Graph Contrastive Learning with Augmentation.org" "/home/awannaphasch2016/org/diary.org" "/home/awannaphasch2016/org/journal.org" "/home/awannaphasch2016/org/notes.org" "/home/awannaphasch2016/org/refile.org" "/home/awannaphasch2016/org/todo.org"))
+   '("/home/awannaphasch2016/.doom.d/config.org" "/home/awannaphasch2016/org/PhD.org" "/home/awannaphasch2016/org/diary.org" "/home/awannaphasch2016/org/journal.org" "/home/awannaphasch2016/org/refile.org" "/home/awannaphasch2016/org/todo.org" "/home/awannaphasch2016/org/projects/sideprojects/garun/garun.org" "/home/awannaphasch2016/org/notes/incremental-learning.org" "/home/awannaphasch2016/org/projects/sideprojects/pen.org" "/home/awannaphasch2016/org/GTD.org" "/home/awannaphasch2016/org/notes/articles-to-reads.org" "/home/awannaphasch2016/org/notes/books/books-to-read.org" "/home/awannaphasch2016/org/personal-website.org" "/home/awannaphasch2016/org/school.org" "/home/awannaphasch2016/org/expert-identification.org" "/home/awannaphasch2016/org/life.org" "/home/awannaphasch2016/org/finance/personal-finance.org"))
+ '(org-todo-keywords
+   '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)" "MAYBE(m)" "VALIDATE(v)")
+     (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING")))
+ '(org-todo-state-tags-triggers
+   '((done
+      ("CANCELLED"))
+     ("WAITING"
+      ("WAITING" . t))
+     ("HOLD"
+      ("WAITING")
+      ("HOLD" . t))
+     (done
+      ("WAITING")
+      ("HOLD"))
+     ("TODO"
+      ("WAITING")
+      ("CANCELLED")
+      ("HOLD"))
+     ("NEXT"
+      ("WAITING")
+      ("CANCELLED")
+      ("HOLD"))
+     ("DONE"
+      ("WAITING")
+      ("CANCELLED")
+      ("HOLD"))))
  '(package-selected-packages
    '(exec-path-from-shell zotero yasnippet pkg-info org-web-tools org-sidebar org-roam org-ref org-preview-html org-present org-noter-pdftools org-drill org-download org-brain ob-ipython ledger-mode key-chord ivy helm-bibtex eimp eglot dap-mode bicycle ace-jump-mode)))
 (custom-set-faces

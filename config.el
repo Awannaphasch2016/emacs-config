@@ -415,7 +415,7 @@ corresponding to the indentation of the current line"
   (text-scale-mode 0))
 ;; Org tree slide helper:1 ends here
 
-;; [[file:config.org::*bh prefix (I don't remember where this is from. reference them when I figure it out)][bh prefix (I don't remember where this is from. reference them when I figure it out):1]]
+;; [[file:config.org::*uncategorized][uncategorized:1]]
 (defun bh/hide-other ()
   (interactive)
   (save-excursion
@@ -444,99 +444,9 @@ corresponding to the indentation of the current line"
   (switch-to-buffer "*scratch*"))
 
 (setq bh/keep-clock-running nil)
+;; uncategorized:1 ends here
 
-(defun bh/clock-in-to-next (kw)
-  "Switch a task from TODO to NEXT when clocking in.
-Skips capture tasks, projects, and subprojects.
-Switch projects and subprojects from NEXT back to TODO"
-  (when (not (and (boundp 'org-capture-mode) org-capture-mode))
-    (cond
-     ((and (member (org-get-todo-state) (list "TODO"))
-           (bh/is-task-p))
-      "NEXT")
-     ((and (member (org-get-todo-state) (list "NEXT"))
-           (bh/is-project-p))
-      "TODO"))))
-
-(defun bh/find-project-task ()
-  "Move point to the parent (project) task if any"
-  (save-restriction
-    (widen)
-    (let ((parent-task (save-excursion (org-back-to-heading 'invisible-ok) (point))))
-      (while (org-up-heading-safe)
-        (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
-          (setq parent-task (point))))
-      (goto-char parent-task)
-      parent-task)))
-
-(defun bh/punch-in (arg)
-  "Start continuous clocking and set the default task to the
-selected task.  If no task is selected set the Organization task
-as the default task."
-  (interactive "p")
-  (setq bh/keep-clock-running t)
-  (if (equal major-mode 'org-agenda-mode)
-      ;;
-      ;; We're in the agenda
-      ;;
-      (let* ((marker (org-get-at-bol 'org-hd-marker))
-             (tags (org-with-point-at marker (org-get-tags-at))))
-        (if (and (eq arg 4) tags)
-            (org-agenda-clock-in '(16))
-          (bh/clock-in-organization-task-as-default)))
-    ;;
-    ;; We are not in the agenda
-    ;;
-    (save-restriction
-      (widen)
-      ; Find the tags on the current task
-      (if (and (equal major-mode 'org-mode) (not (org-before-first-heading-p)) (eq arg 4))
-          (org-clock-in '(16))
-        (bh/clock-in-organization-task-as-default)))))
-
-(defun bh/punch-out ()
-  (interactive)
-  (setq bh/keep-clock-running nil)
-  (when (org-clock-is-active)
-    (org-clock-out))
-  (org-agenda-remove-restriction-lock))
-
-(defun bh/clock-in-default-task ()
-  (save-excursion
-    (org-with-point-at org-clock-default-task
-      (org-clock-in))))
-
-(defun bh/clock-in-parent-task ()
-  "Move point to the parent (project) task if any and clock in"
-  (let ((parent-task))
-    (save-excursion
-      (save-restriction
-        (widen)
-        (while (and (not parent-task) (org-up-heading-safe))
-          (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
-            (setq parent-task (point))))
-        (if parent-task
-            (org-with-point-at parent-task
-              (org-clock-in))
-          (when bh/keep-clock-running
-            (bh/clock-in-default-task)))))))
-
-(defvar bh/organization-task-id "eb155a82-92b2-4f25-a3c6-0304591af2f9")
-
-(defun bh/clock-in-organization-task-as-default ()
-  (interactive)
-  (org-with-point-at (org-id-find bh/organization-task-id 'marker)
-    (org-clock-in '(16))))
-
-(defun bh/clock-out-maybe ()
-  (when (and bh/keep-clock-running
-             (not org-clock-clocking-in)
-             (marker-buffer org-clock-default-task)
-             (not org-clock-resolving-clocks-due-to-idleness))
-    (bh/clock-in-parent-task)))
-
-(add-hook 'org-clock-out-hook 'bh/clock-out-maybe 'append)
-
+;; [[file:config.org::*Defining project][Defining project:1]]
 (defun bh/is-project-p ()
   "Any task with a todo keyword subtask"
   (save-restriction
@@ -790,7 +700,229 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
     (if (bh/is-subproject-p)
         nil
       next-headline)))
-;; bh prefix (I don't remember where this is from. reference them when I figure it out):1 ends here
+;; Defining project:1 ends here
+
+;; [[file:config.org::*Defining task][Defining task:1]]
+(defun bh/mark-next-parent-tasks-todo ()
+  "Visit each parent task and change NEXT states to TODO"
+  (let ((mystate (or (and (fboundp 'org-state)
+                          state)
+                     (nth 2 (org-heading-components)))))
+    (when mystate
+      (save-excursion
+        (while (org-up-heading-safe)
+          (when (member (nth 2 (org-heading-components)) (list "NEXT"))
+            (org-todo "TODO")))))))
+
+(add-hook 'org-after-todo-state-change-hook 'bh/mark-next-parent-tasks-todo 'append)
+(add-hook 'org-clock-in-hook 'bh/mark-next-parent-tasks-todo 'append)
+;; Defining task:1 ends here
+
+;; [[file:config.org::*for refiling][for refiling:1]]
+(defun bh/verify-refile-target ()
+    "Exclude todo keywords with a done state from refile targets"
+    (not (member (nth 2 (org-heading-components)) org-done-keywords)))
+;; for refiling:1 ends here
+
+;; [[file:config.org::*for tags filtering][for tags filtering:1]]
+(defun bh/org-auto-exclude-function (tag)
+  "Automatic task exclusion in the agenda with / RET"
+  (and (cond
+        ((string= tag "hold")
+         t)
+        ((string= tag "waiting")
+         t))
+       (concat "-" tag)))
+(setq org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
+;; for tags filtering:1 ends here
+
+;; [[file:config.org::*For clocking][For clocking:1]]
+(defun bh/clock-in-to-next (kw)
+  "Switch a task from TODO to NEXT when clocking in.
+Skips capture tasks, projects, and subprojects.
+Switch projects and subprojects from NEXT back to TODO"
+  (when (not (and (boundp 'org-capture-mode) org-capture-mode))
+    (cond
+     ((and (member (org-get-todo-state) (list "TODO"))
+           (bh/is-task-p))
+      "NEXT")
+     ((and (member (org-get-todo-state) (list "NEXT"))
+           (bh/is-project-p))
+      "TODO"))))
+
+(defun bh/find-project-task ()
+  "Move point to the parent (project) task if any"
+  (save-restriction
+    (widen)
+    (let ((parent-task (save-excursion (org-back-to-heading 'invisible-ok) (point))))
+      (while (org-up-heading-safe)
+        (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
+          (setq parent-task (point))))
+      (goto-char parent-task)
+      parent-task)))
+
+(defun bh/punch-in (arg)
+  "Start continuous clocking and set the default task to the
+selected task.  If no task is selected set the Organization task
+as the default task."
+  (interactive "p")
+  (setq bh/keep-clock-running t)
+  (if (equal major-mode 'org-agenda-mode)
+      ;;
+      ;; We're in the agenda
+      ;;
+      (let* ((marker (org-get-at-bol 'org-hd-marker))
+             (tags (org-with-point-at marker (org-get-tags-at))))
+        (if (and (eq arg 4) tags)
+            (org-agenda-clock-in '(16))
+          (bh/clock-in-organization-task-as-default)))
+    ;;
+    ;; We are not in the agenda
+    ;;
+    (save-restriction
+      (widen)
+                                        ; Find the tags on the current task
+      (if (and (equal major-mode 'org-mode) (not (org-before-first-heading-p)) (eq arg 4))
+          (org-clock-in '(16))
+        (bh/clock-in-organization-task-as-default)))))
+
+(defun bh/punch-out ()
+  (interactive)
+  (setq bh/keep-clock-running nil)
+  (when (org-clock-is-active)
+    (org-clock-out))
+  (org-agenda-remove-restriction-lock))
+
+(defun bh/clock-in-default-task ()
+  (save-excursion
+    (org-with-point-at org-clock-default-task
+      (org-clock-in))))
+
+(defun bh/clock-in-parent-task ()
+  "Move point to the parent (project) task if any and clock in"
+  (let ((parent-task))
+    (save-excursion
+      (save-restriction
+        (widen)
+        (while (and (not parent-task) (org-up-heading-safe))
+          (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
+            (setq parent-task (point))))
+        (if parent-task
+            (org-with-point-at parent-task
+              (org-clock-in))
+          (when bh/keep-clock-running
+            (bh/clock-in-default-task)))))))
+
+(defvar bh/organization-task-id "46615078-5777-4487-8197-b1c6fd8641a0")
+
+(defun bh/clock-in-organization-task-as-default ()
+  (interactive)
+  (org-with-point-at (org-id-find bh/organization-task-id 'marker)
+    (org-clock-in '(16))))
+
+(defun bh/clock-out-maybe ()
+  (when (and bh/keep-clock-running
+             (not org-clock-clocking-in)
+             (marker-buffer org-clock-default-task)
+             (not org-clock-resolving-clocks-due-to-idleness))
+    (bh/clock-in-parent-task)))
+
+(add-hook 'org-clock-out-hook 'bh/clock-out-maybe 'append)
+
+(require 'org-id)
+(defun bh/clock-in-task-by-id (id)
+  "Clock in a task by id"
+  (org-with-point-at (org-id-find id 'marker)
+    (org-clock-in nil)))
+(defun bh/clock-in-last-task (arg)
+  "Clock in the interrupted task if there is one
+Skip the default task and get the next one.
+A prefix arg forces clock in of the default task."
+  (interactive "p")
+  (let ((clock-in-to-task
+         (cond
+          ((eq arg 4) org-clock-default-task)
+          ((and (org-clock-is-active)
+                (equal org-clock-default-task (cadr org-clock-history)))
+           (caddr org-clock-history))
+          ((org-clock-is-active) (cadr org-clock-history))
+          ((equal org-clock-default-task (car org-clock-history)) (cadr org-clock-history))
+          (t (car org-clock-history)))))
+    (widen)
+    (org-with-point-at clock-in-to-task
+      (org-clock-in nil))))
+;; For clocking:1 ends here
+
+;; [[file:config.org::*For bbdb (phone call)][For bbdb (phone call):1]]
+;; (require 'bbdb)
+;; (require 'bbdb-com)
+
+;; ;; Phone capture template handling with BBDB lookup
+;; ;; Adapted from code by Gregory J. Grubbs
+;; (defun bh/phone-call ()
+;;   "Return name and company info for caller from bbdb lookup"
+;;   (interactive)
+;;   (let* (name rec caller)
+;;     (setq name (completing-read "Who is calling? "
+;;                                 (bbdb-hashtable)
+;;                                 'bbdb-completion-predicate
+;;                                 'confirm))
+;;     (when (> (length name) 0)
+;;                                         ; Something was supplied - look it up in bbdb
+;;       (setq rec
+;;             (or (first
+;;                  (or (bbdb-search (bbdb-records) name nil nil)
+;;                      (bbdb-search (bbdb-records) nil name nil)))
+;;                 name)))
+;;                                         ; Build the bbdb link if we have a bbdb record, otherwise just return the name
+;;     (setq caller (cond ((and rec (vectorp rec))
+;;                         (let ((name (bbdb-record-name rec))
+;;                               (company (bbdb-record-company rec)))
+;;                           (concat "[[bbdb:"
+;;                                   name "]["
+;;                                   name "]]"
+;;                                   (when company
+;;                                     (concat " - " company)))))
+;;                        (rec)
+;;                        (t "NameOfCaller")))
+;;     (insert caller)))
+;; For bbdb (phone call):1 ends here
+
+;; [[file:config.org::*For archive][For archive:1]]
+(setq org-archive-mark-done nil)
+(setq org-archive-location "%s_archive::* Archived Tasks")
+
+(defun bh/skip-non-archivable-tasks ()
+  "Skip trees that are not available for archiving"
+  (save-restriction
+    (widen)
+    ;; Consider only tasks with done todo headings as archivable candidates
+    (let ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+          (subtree-end (save-excursion (org-end-of-subtree t))))
+      (if (member (org-get-todo-state) org-todo-keywords-1)
+          (if (member (org-get-todo-state) org-done-keywords)
+              (let* ((daynr (string-to-number (format-time-string "%d" (current-time))))
+                     (a-month-ago (* 60 60 24 (+ daynr 1)))
+                     (last-month (format-time-string "%Y-%m-" (time-subtract (current-time) (seconds-to-time a-month-ago))))
+                     (this-month (format-time-string "%Y-%m-" (current-time)))
+                     (subtree-is-current (save-excursion
+                                           (forward-line 1)
+                                           (and (< (point) subtree-end)
+                                                (re-search-forward (concat last-month "\\|" this-month) subtree-end t)))))
+                (if subtree-is-current
+                    subtree-end ; Has a date in this month or last month, skip it
+                  nil))  ; available to archive
+            (or subtree-end (point-max)))
+        next-headline))))
+;; For archive:1 ends here
+
+;; [[file:config.org::*For reminder][For reminder:1]]
+; Erase all reminders and rebuilt reminders for today from the agenda
+(defun bh/org-agenda-to-appt ()
+  (interactive)
+  (setq appt-time-msg-list nil)
+  (org-agenda-to-appt))
+;; For reminder:1 ends here
 
 ;; [[file:config.org::*Key binding configuration][Key binding configuration:1]]
 ;; url: http://doc.norang.ca/org-mode.html#GettingStarted
@@ -830,15 +962,18 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
 (global-set-key (kbd "C-<f11>") 'org-clock-in)
 (global-set-key (kbd "C-s-<f12>") 'bh/save-then-publish)
 (global-set-key (kbd "C-c c") 'org-capture)
-
+(global-set-key (kbd "<f9> p") 'bh/phone-call)
 
 ;; search + find + filter
 (map! :leader "s F" #'find-name-dired)
+
+(map! :leader "m s c" #'org-copy-subtree)
+(map! :leader "m s C" #'org-clone-subtree-with-time-shift)
 ;; Key binding configuration:1 ends here
 
 ;; [[file:config.org::*basic configuration][basic configuration:1]]
-;; (setq desktop-save-mode nil)
-(desktop-save-mode 1)
+(setq desktop-save-mode nil)
+;; (desktop-save-mode 1)
 (setq load-prefer-newer t)
 (setq which-function-mode t)
 ;; basic configuration:1 ends here
@@ -873,7 +1008,6 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
    whitespace-line-column 100 ; column at which
         ; whitespace-mode says the line is too long
 )
-
 ;; (add-to-list 'browse-url-filename-alist '("^~+" . "file:///home/awannaphasch2016"))
 ;; configuration to encourage code formating syle:1 ends here
 
@@ -983,10 +1117,11 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
 ;; Web Mode:1 ends here
 
 ;; [[file:config.org::*lispy][lispy:1]]
-(use-package lispy
-    :custom
-    (map! ";" #'lispy-comment)
-  )
+;; (use-package! lispy
+;;     :custom
+;;     (map! ";" #'lispy-comment)
+;;     (map! "D" #'lispy-delete)
+;;     (map! "y" #'lispy-new-copy))
 ;; lispy:1 ends here
 
 ;; [[file:config.org::*lispyville][lispyville:1]]
@@ -1111,7 +1246,7 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; [[file:config.org::*pyright setup][pyright setup:1]]
 ;; ref: https://github.com/emacs-lsp/lsp-pyright
 (use-package lsp-pyright
-  :ensure t
+  ;; :ensure t
   :hook (python-mode . (lambda ()
                           (require 'lsp-pyright)
                           (lsp))))  ; or lsp-deferred
@@ -1329,9 +1464,10 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   "Python :: Run file (train_self_supervised testing args)"
   (list :type "python"
         :name "gdb::run with arguments"
-        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "forward"  "--keep_last_n_window_as_window_slides" "3" "--window_stride_multiplier" "2" "--use_nf_weight" "--window_idx_to_start_with" "3" "--disable_cuda")
-        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "2" "--bs" "1000" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "forward" "--window_stride_multiplier" "1" "--use_nf_weight" "--disable_cuda")
-        :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "ensemble" "--disable_cuda")
+        :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "forward"  "--keep_last_n_window_as_window_slides" "1" "--window_stride_multiplier" "1" "--init_n_instances_as_multiple_of_ws" "5" "--disable_cuda")
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "ensemble" "--window_stride_multiplier" "1" "--disable_cuda" "--init_n_instances_as_multiple_of_ws" "5")
+        ;; :args (list "-d" "reddit_10000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "200" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "ensemble" "--disable_cuda" "--init_n_instances_as_multiple_of_ws" "6" "--fix_begin_data_ind_of_models_in_ensemble")
+        ;; :args (list "-d" "reddit_100000" "--use_memory" "--n_runs" "1" "--n_epoch" "5" "--bs" "1000" "--ws_multiplier" "1" "--custom_prefix" "tmp" "--ws_framework" "ensemble" "--disable_cuda" "--fix_begin_data_ind_of_models_in_ensemble" "--init_n_instances_as_multiple_of_ws" "5" "--keep_last_n_window_as_window_slides" "1")
         :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
         :module nil
         :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/train_self_supervised.py"
@@ -1559,6 +1695,10 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (add-to-list 'auto-mode-alist '("\\.mermaid\\'" . mermaid-mode))
 ;; mermaid:1 ends here
 
+;; [[file:config.org::*ditaa][ditaa:1]]
+;; (setq org-ditaa-jar-path "~/git/org-mode/contrib/scripts/ditaa.jar")
+;; ditaa:1 ends here
+
 ;; [[file:config.org::*Bibtex][Bibtex:1]]
 ;; helm-bibtex url: https://rgoswami.me/posts/org-note-workflow/#indexing-notes
 (setq
@@ -1586,36 +1726,49 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; Bibtex:1 ends here
 
 ;; [[file:config.org::*Org Mode][Org Mode:1]]
+;; (add-to-list 'org-modules 'org-habit)
+
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/org/")
+(setq org-directory "/home/awannaphasch2016/org/") ;; :FIXME: currently, when doom/reload org-directory is set to /home/awannaphasch2016/org-roam. Not sure why.
 
 ;; Separate drawers for clocking and logs
 (setq org-drawers (quote ("PROPERTIES" "LOGBOOK")))
-(setq org-time-stamp-rounding-minutes (quote (1 1)))
-; Set default column view headings: Task Effort Clock_Summary
-(setq org-columns-default-format "%50ITEM(Task) %10Effort(Effort){:} %10CLOCKSUM")
-; global Effort estimate values
-; global STYLE property values for completion
-(setq org-global-properties (quote (("Effort_ALL" . "0:15 0:30 0:45 1:00 2:00 3:00 4:00 5:00 6:00 0:00")
-                                    ("STYLE_ALL" . "habit"))))
 ; Tags with fast selection keys
 (setq org-tag-alist (quote ((:startgroup)
                             ("@errand" . ?e)
-                            ("@office" . ?o)
-                            ("@home" . ?H)
+                            ("@sideproject" . ?p)
+                            ("@home" . ?h)
+                            ("@school" . ?s)
+                            ("@PhD" . ?P)
+                            ;; ("@life" . ?l)
                             (:endgroup)
                             ("WAITING" . ?w)
-                            ("HOLD" . ?h)
+                            ("HOLD" . ?H)
                             ("PERSONAL" . ?P)
+                            ("garun" . ?g)
+                            ("pen" . ?p)
+                            ("gtd" . ?t)
                             ("WORK" . ?W)
-                            ("ORG" . ?O)
-                            ("NORANG" . ?N)
+                            ("emacs" . ?m)
                             ("crypt" . ?E)
-                            ("NOTE" . ?n)
-                            ("CANCELLED" . ?c)
-                            ("FLAGGED" . ??))))
+                            ("NOTE" . ?N)
+                            ("CANCELLED" . ?C)
+                            ("FLAGGED" . ?F)
+                            ("LEARN" . ?L)
+                            ("mywebsite" . ?M)
+                            ("EI" . ?i) ;; EI stands for expert-identification
+                            )))
+
 (setq org-stuck-projects (quote ("" nil nil "")))
+
+;; ref:http://doc.norang.ca/org-mode.html
+(run-at-time "00:59" 3600 'org-save-all-org-buffers)
+
+;; specify what to log and where to place the logs (relative to drawer)
+(setq org-log-done (quote time))
+(setq org-log-into-drawer t)
+(setq org-log-state-notes-insert-after-drawers nil)
 ;; Org Mode:1 ends here
 
 ;; [[file:config.org::*Org bullets][Org bullets:1]]
@@ -1721,7 +1874,8 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
    (scala . t)
    (go . t  )
    (python . t)
-   (julia . t)))
+   (julia . t)
+   (ditaa . t)))
 ;; Org babel:1 ends here
 
 ;; [[file:config.org::*Org babel][Org babel:2]]
@@ -1793,10 +1947,104 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
            :unnarrowed t))))
 ;; Org roam bibtex:1 ends here
 
-;; [[file:config.org::*Org todo][Org todo:1]]
+;; [[file:config.org::*Org capture][Org capture:1]]
+;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
+(setq org-capture-templates
+      (quote (("t" "todo" entry (file "~/org/refile.org")
+               "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
+              ("r" "respond" entry (file "~/org/refile.org")
+               "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
+              ("n" "note" entry (file "~/org/refile.org")
+               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
+              ("j" "Journal" entry (file+datetree "~/org/journal.org")
+               "* %?\n%U\n" :clock-in t :clock-resume t)
+              ("d" "daily" entry (file+datetree "~/org/daily.org")
+               "* %?\n%U\n" :clock-in t :clock-resume t)
+              ("w" "org-protocol" entry (file "~/org/refile.org")
+               "* TODO Review %c\n%U\n" :immediate-finish t)
+              ("l" "Learning" entry (file "~/org/refile.org")
+               "* LEARNING %?\n%U\n" :clock-in t :clock-resume t)
+              ("?" "Questions" entry (file "~/org/refile.org")
+               "* Questions %?\n%U\n" :clock-in t :clock-resume t)
+              ("m" "Meeting" entry (file "~/org/refile.org")
+               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
+              ("p" "Phone call" entry (file "~/org/refile.org")
+               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
+              ("h" "Habit" entry (file "~/org/refile.org")
+               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
+;; Org capture:1 ends here
+
+;; [[file:config.org::*Org clock][Org clock:1]]
+;; clockin setup url:http://doc.norang.ca/org-mode.html
+;; Resume clocking task when emacs is restarted
+(org-clock-persistence-insinuate)
+(setq org-time-stamp-rounding-minutes (quote (1 1)))
+
+;; Show lot of clocking history so it's easy to pick items off the C-F11 list
+(setq org-clock-history-length 23)
+;; Resume clocking task on clock-in if the clock is open
+(setq org-clock-in-resume t)
+;; Change tasks to NEXT when clocking in
+(setq org-clock-in-switch-to-state 'bh/clock-in-to-next)
+;; Save clock data and state changes and notes in the LOGBOOK drawer
+(setq org-clock-into-drawer t)
+;; Sometimes I change tasks I'm clocking quickly - this removes clocked tasks with 0:00 duration
+(setq org-clock-out-remove-zero-time-clocks t)
+;; Clock out when moving task to a done state
+(setq org-clock-out-when-done t)
+;; Save the running clock and all clock history when exiting Emacs, load it on startup
+(setq org-clock-persist t)
+;; Do not prompt to resume an active clock
+(setq org-clock-persist-query-resume nil)
+;; Enable auto clock resolution for finding open clocks
+(setq org-clock-auto-clock-resolution (quote when-no-clock-is-running))
+;; Include current clocking task in clock reports
+(setq org-clock-report-include-clocking-task t)
+
+;; checking clock consistency
+(setq org-agenda-clock-consistency-checks
+      (quote (:max-duration "4:00"
+              :min-duration 0
+              :max-gap 0
+              :gap-ok-around ("4:00"))))
+;; Org clock:1 ends here
+
+;; [[file:config.org::*base config setting][base config setting:1]]
+;; evil mode disable in agenda mode
+;; (setq evil-emacs-state-modes 'org-agenda-mode)
+
+(setq org-agenda-files '("/home/awannaphasch2016/org/PhD.org"
+                         "/home/awannaphasch2016/org/diary.org"
+                         "/home/awannaphasch2016/org/journal.org"
+                         "/home/awannaphasch2016/org/refile.org"
+                         "/home/awannaphasch2016/org/todo.org"
+                         "/home/awannaphasch2016/org/projects/sideprojects/garun/garun.org"
+                         "/home/awannaphasch2016/org/notes/incremental-learning.org"
+                         "/home/awannaphasch2016/org/projects/sideprojects/pen.org"
+                         "/home/awannaphasch2016/org/GTD.org"
+                         "/home/awannaphasch2016/org/notes/articles-to-reads.org"
+                         "/home/awannaphasch2016/org/notes/books/books-to-read.org"
+                         "/home/awannaphasch2016/org/personal-website.org"
+                         "/home/awannaphasch2016/org/school.org"
+                         "/home/awannaphasch2016/org/expert-identification.org"
+                         "/home/awannaphasch2016/org/life.org"
+                         "/home/awannaphasch2016/org/finance/personal-finance.org"))
+
+(setq org-default-notes-file "/home/awannaphasch2016/org/refile.org")
+
+;; to keep the agenda fast I set
+;; (setq org-agenda-span 'day) :FIXME: org agenda doesn't show today. it only shows 3 days eariler.
+
+;; ref: http://doc.norang.ca/org-mode.html
+(setq org-deadline-warning-days 30)
+(setq org-enforce-todo-dependencies t)
+;; base config setting:1 ends here
+
+;; [[file:config.org::*5.1 TODO keywords][5.1 TODO keywords:1]]
 ;; org-todo
+;; note: special markers ‘!’ (for a timestamp) or ‘@’ (for a note with timestamp) in parentheses after each keyword.
 (setq org-todo-keywords
-      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)" "VALIDATE(v)")
+      (quote ((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
               (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELLED(c@/!)" "PHONE" "MEETING"))))
 
 (setq org-todo-keyword-faces
@@ -1808,30 +2056,56 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
               ("CANCELLED" :foreground "forest green" :weight bold)
               ("MEETING" :foreground "forest green" :weight bold)
               ("PHONE" :foreground "forest green" :weight bold))))
-;; Org todo:1 ends here
+;; 5.1 TODO keywords:1 ends here
 
-;; [[file:config.org::*Org capture][Org capture:1]]
-;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
-(setq org-capture-templates
-      (quote (("t" "todo" entry (file "~/org/refile.org")
-               "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("r" "respond" entry (file "~/org/refile.org")
-               "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-              ("n" "note" entry (file "~/org/refile.org")
-               "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("j" "Journal" entry (file+datetree "~/org/diary.org")
-               "* %?\n%U\n" :clock-in t :clock-resume t)
-              ("w" "org-protocol" entry (file "~/org/refile.org")
-               "* TODO Review %c\n%U\n" :immediate-finish t)
-              ("m" "Meeting" entry (file "~/org/refile.org")
-               "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-              ("p" "Phone call" entry (file "~/org/refile.org")
-               "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-              ("h" "Habit" entry (file "~/org/refile.org")
-               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
-;; Org capture:1 ends here
+;; [[file:config.org::*5.2 Fast Todo Selection][5.2 Fast Todo Selection:1]]
+(setq org-treat-S-cursor-todo-selection-as-state-change nil)
+;; 5.2 Fast Todo Selection:1 ends here
 
-;; [[file:config.org::*Org Agenda][Org Agenda:1]]
+;; [[file:config.org::*5.3 Todo state triggers][5.3 Todo state triggers:1]]
+(setq org-todo-state-tags-triggers
+      (quote (("CANCELLED" ("CANCELLED" . t))
+              ("WAITING" ("WAITING" . t))
+              ("HOLD" ("WAITING") ("HOLD" . t))
+              ;; ("DONE" ("WAITING") ("HOLD"))
+              (done ("WAITING") ("HOLD"))
+              ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
+              ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
+;; 5.3 Todo state triggers:1 ends here
+
+;; [[file:config.org::*Refiling][Refiling:1]]
+;; ref: http://doc.norang.ca/org-mode.html
+
+; Targets include this file and any file contributing to the agenda - up to 9 levels deep
+(setq org-refile-targets (quote ((nil :maxlevel . 9)
+(org-agenda-files :maxlevel . 9))))
+; Use full outline paths for refile targets - we file directly with IDO
+(setq org-refile-use-outline-path t)
+; Targets complete directly with IDO
+(setq org-outline-path-complete-in-steps nil)
+; Allow refile to create parent tasks with confirmation
+(setq org-refile-allow-creating-parent-nodes (quote confirm))
+
+;; ; Use IDO for both buffer and file completion and ido-everywhere to t
+;; (setq org-completion-use-ido t)
+;; (setq ido-everywhere t)
+;; (setq ido-max-directory-size 100000)
+;; (ido-mode (quote both))
+;; ; Use the current window when visiting files and buffers with ido
+;; (setq ido-default-file-method 'selected-window)
+;; (setq ido-default-buffer-method 'selected-window)
+
+; Use the current window for indirect buffer display
+(setq org-indirect-buffer-display 'current-window)
+;;;; Refile settings
+; Exclude DONE state tasks from refile targets
+(setq org-refile-target-verify-function 'bh/verify-refile-target)
+;; Refiling:1 ends here
+
+;; [[file:config.org::*Custom Agenda Views][Custom Agenda Views:1]]
+;; ref: http://doc.norang.ca/org-mode.html
+
 ;; Do not dim blocked tasks
 (setq org-agenda-dim-blocked-tasks nil)
 
@@ -1910,35 +2184,38 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
                       ((org-agenda-overriding-header "Tasks to Archive")
                        (org-agenda-skip-function 'bh/skip-non-archivable-tasks)
                        (org-tags-match-list-sublevels nil))))
-))))
-;; Org Agenda:1 ends here
+               nil))))
+;; Custom Agenda Views:1 ends here
 
-;; [[file:config.org::*Org clock][Org clock:1]]
-;; clockin setup url:http://doc.norang.ca/org-mode.html
-;; Resume clocking task when emacs is restarted
-(org-clock-persistence-insinuate)
+;; [[file:config.org::*Report block][Report block:1]]
+;; Agenda clock report parameters
+(setq org-agenda-clockreport-parameter-plist
+      (quote (:link t :maxlevel 5 :fileskip0 t :compact t :narrow 80)))
 
-;; Show lot of clocking history so it's easy to pick items off the C-F11 list
-(setq org-clock-history-length 23)
-;; Resume clocking task on clock-in if the clock is open
-(setq org-clock-in-resume t)
-;; Change tasks to NEXT when clocking in
-(setq org-clock-in-switch-to-state 'bh/clock-in-to-next)
-;; Save clock data and state changes and notes in the LOGBOOK drawer
-(setq org-clock-into-drawer t)
-;; Sometimes I change tasks I'm clocking quickly - this removes clocked tasks with 0:00 duration
-(setq org-clock-out-remove-zero-time-clocks t)
-;; Clock out when moving task to a done state
-(setq org-clock-out-when-done t)
-;; Save the running clock and all clock history when exiting Emacs, load it on startup
-(setq org-clock-persist t)
-;; Do not prompt to resume an active clock
-(setq org-clock-persist-query-resume nil)
-;; Enable auto clock resolution for finding open clocks
-(setq org-clock-auto-clock-resolution (quote when-no-clock-is-running))
-;; Include current clocking task in clock reports
-(setq org-clock-report-include-clocking-task t)
-;; Org clock:1 ends here
+; Set default column view headings: Task Effort Clock_Summary
+(setq org-columns-default-format "%50ITEM(Task) %10Effort(Effort){:} %10CLOCKSUM")
+; global Effort estimate values
+; global STYLE property values for completion
+(setq org-global-properties (quote (("Effort_ALL" . "0:15 0:30 0:45 1:00 2:00 3:00 4:00 5:00 6:00 0:00")
+                                    ("STYLE_ALL" . "habit"))))
+
+;; Agenda log mode items to display (closed and state changes by default)
+(setq org-agenda-log-mode-items (quote (closed state)))
+;; Report block:1 ends here
+
+;; [[file:config.org::*Reminder][Reminder:1]]
+; Rebuild the reminders everytime the agenda is displayed
+(add-hook 'org-agenda-finalize-hook 'bh/org-agenda-to-appt 'append)
+
+; This is at the end of my .emacs - so appointments are set up when Emacs starts
+(bh/org-agenda-to-appt)
+
+; Activate appointments so we get notifications
+(appt-activate t)
+
+; If we leave Emacs running overnight - reset the appointments one minute after midnight
+(run-at-time "24:01" nil 'bh/org-agenda-to-appt)
+;; Reminder:1 ends here
 
 ;; [[file:config.org::*Org drill][Org drill:1]]
 (add-to-list 'load-path "~/org/space-repetition/")
@@ -1956,6 +2233,18 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   (org-tree-slide-breadcrumbs " // ")
   (org-image-actual-width nil))
 ;; Org tree slide:1 ends here
+
+;; [[file:config.org::*Org habit][Org habit:1]]
+(require 'org-habit)
+;; Org habit:1 ends here
+
+;; [[file:config.org::*Org checklist][Org checklist:1]]
+(require 'org-checklist)
+;; Org checklist:1 ends here
+
+;; [[file:config.org::*Org fragtog][Org fragtog:1]]
+(add-hook 'org-mode-hook 'org-fragtog-mode)
+;; Org fragtog:1 ends here
 
 ;; [[file:config.org::*Ace jump][Ace jump:1]]
 
@@ -2038,6 +2327,164 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (setq leetcode-save-solutions t)
 (setq leetcode-directory "~/leetcode")
 ;; leetcode:1 ends here
+
+;; [[file:config.org::*Default Text Mode][Default Text Mode:1]]
+;; (require 'default-text-scale)
+
+;; (default-text-scale-increment (- default-text-scale-amount))
+;; Default Text Mode:1 ends here
+
+;; [[file:config.org::*ox-hugo][ox-hugo:1]]
+(require 'ox-hugo)
+;; ox-hugo:1 ends here
+
+;; [[file:config.org::*multi-term][multi-term:1]]
+(setq multi-term-program "/bin/zsh")
+;; multi-term:1 ends here
+
+;; [[file:config.org::*basic config][basic config:1]]
+(after! org
+  ;; Import ox-latex to get org-latex-classes and other funcitonality
+  ;; for exporting to LaTeX from org
+  (use-package! ox-latex
+    :init
+    ;; code here will run immediately
+    :config
+    ;; code here will run after the package is loaded
+    (setq org-latex-pdf-process
+          '("pdflatex -interaction nonstopmode -output-directory %o %f"
+            "bibtex %b"
+            "pdflatex -interaction nonstopmode -output-directory %o %f"
+            "pdflatex -interaction nonstopmode -output-directory %o %f"))
+    (setq org-latex-with-hyperref nil) ;; stop org adding hypersetup{author..} to latex export
+    ;; (setq org-latex-prefer-user-labels t)
+
+    ;; deleted unwanted file extensions after latexMK
+    (setq org-latex-logfiles-extensions
+          (quote ("lof" "lot" "tex~" "aux" "idx" "log" "out" "toc" "nav" "snm" "vrb" "dvi" "fdb_latexmk" "blg" "brf" "fls" "entoc" "ps" "spl" "bbl" "xmpi" "run.xml" "bcf" "acn" "acr" "alg" "glg" "gls" "ist")))
+
+    (unless (boundp 'org-latex-classes)
+      (setq org-latex-classes nil))))
+;; basic config:1 ends here
+
+;; [[file:config.org::*Doom specific config][Doom specific config:1]]
+;; (setq reftex-default-bibliography "/your/bib/file.bib")
+;; Doom specific config:1 ends here
+
+;; [[file:config.org::*templates][templates:1]]
+(add-to-list 'org-latex-classes
+             '("altacv" "\\documentclass[10pt,a4paper,ragged2e,withhyper]{altacv}
+
+% Change the page layout if you need to
+\\geometry{left=1.25cm,right=1.25cm,top=1.5cm,bottom=1.5cm,columnsep=1.2cm}
+
+% Use roboto and lato for fonts
+\\renewcommand{\\familydefault}{\\sfdefault}
+
+% Change the colours if you want to
+\\definecolor{SlateGrey}{HTML}{2E2E2E}
+\\definecolor{LightGrey}{HTML}{666666}
+\\definecolor{DarkPastelRed}{HTML}{450808}
+\\definecolor{PastelRed}{HTML}{8F0D0D}
+\\definecolor{GoldenEarth}{HTML}{E7D192}
+\\colorlet{name}{black}
+\\colorlet{tagline}{PastelRed}
+\\colorlet{heading}{DarkPastelRed}
+\\colorlet{headingrule}{GoldenEarth}
+\\colorlet{subheading}{PastelRed}
+\\colorlet{accent}{PastelRed}
+\\colorlet{emphasis}{SlateGrey}
+\\colorlet{body}{LightGrey}
+
+% Change some fonts, if necessary
+\\renewcommand{\\namefont}{\\Huge\\rmfamily\\bfseries}
+\\renewcommand{\\personalinfofont}{\\footnotesize}
+\\renewcommand{\\cvsectionfont}{\\LARGE\\rmfamily\\bfseries}
+\\renewcommand{\\cvsubsectionfont}{\\large\\bfseries}
+
+% Change the bullets for itemize and rating marker
+% for \cvskill if you want to
+\\renewcommand{\\itemmarker}{{\\small\\textbullet}}
+\\renewcommand{\\ratingmarker}{\\faCircle}
+"
+
+               ("\\cvsection{%s}" . "\\cvsection*{%s}")))
+(add-to-list 'org-latex-classes
+             '("IEEE" "\\documentclass[10pt,journal,compsoc]{IEEEtran}"))
+;; templates:1 ends here
+
+;; [[file:config.org::*version 1][version 1:1]]
+(defun anak/my-yank-image-from-win-clipboard-through-powershell() "to simplify the logic, use c:/Users/Public as temporary directoy, and move it into current directoy"
+  (interactive)
+  (let* ((powershell "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe")
+         (file-name (format-time-string "screenshot_%Y%m%d_%H%M%S.png"))
+         ;; (file-name (format-time-string "tmp.txt"))
+         ;; (file-path-powershell (concat "c:/Users/\$env:USERNAME/" file-name))
+         (file-path-wsl (concat "./images/" file-name))
+         )
+    ;; (shell-command (concat powershell " -command \"(Get-Clipboard -Format Image).Save(\\\"C:/Users/\\$env:USERNAME/" file-name "\\\")\""))
+    (shell-command (concat powershell " -command \"(Get-Clipboard -Format Image).Save(\\\"C:/Users/Public/" file-name "\\\")\""))
+    (rename-file (concat "/mnt/c/Users/Public/" file-name) file-path-wsl)
+    (insert (concat "[[file:" file-path-wsl "]]"))
+    (message "insert DONE.")
+    ))
+;; version 1:1 ends here
+
+;; [[file:config.org::*version 2][version 2:1]]
+;; ;; ref:  https://alexrampp.de/2020/11/07/how-to-paste-images-into-emacs-org-mode-running-in-windows-subsystem-for-linux/
+;; (defun my-org-paste-image ()
+;;   "Paste an image into a time stamped unique-named file in the
+;; same directory as the org-buffer and insert a link to this file."
+;;   (interactive)
+;;   (let* ((target-file
+;;           (concat
+;;            (make-temp-name
+;;             (concat (buffer-file-name)
+;;                     "_"
+;;                     (format-time-string "%Y%m%d_%H%M%S_"))) ".png"))
+;;          (wsl-path
+;;           (concat (as-windows-path(file-name-directory target-file))
+;;                   "\"
+;;                   (file-name-nondirectory target-file)))
+;;          (ps-script
+;;           (concat "(Get-Clipboard -Format image).Save('" wsl-path "')")))
+
+;;     (powershell ps-script)
+
+;;     (if (file-exists-p target-file)
+;;         (progn (insert (concat "[[" target-file "]]"))
+;;                (org-display-inline-images))
+;;       (user-error
+;;        "Error pasting the image, make sure you have an image in the clipboard!"))
+;;     ))
+
+;; (defun as-windows-path (unix-path)
+;;   "Takes a unix path and returns a matching WSL path
+;; (e.g. \\wsl$\Ubuntu-20.04\tmp)"
+;;   ;; substring removes the trailing \n
+;;   (substring
+;;    (shell-command-to-string
+;;     (concat "wslpath -w " unix-path)) 0 -1))
+
+;; (defun powershell (script)
+;;   "executes the given script within a powershell and returns its return value"
+;;   (call-process "powershell.exe" nil nil nil
+;;                 "-Command" (concat "& {" script "}")))
+;; version 2:1 ends here
+
+;; [[file:config.org::*Compile command][Compile command:1]]
+;; (add-hook 'LaTeX-mode-hook
+;;           (lambda ()
+;;             (set (make-local-variable 'compile-command)
+;;                  (format "pdflatex %s" (buffer-file-name)))))
+
+(defun set-compile-command-default-in-LaTeX-mode ()
+  (set (make-local-variable 'compile-command)
+                 (format "pdflatex %s" (buffer-file-name))))
+
+(add-hook 'LaTeX-mode-hook
+          'set-compile-command-default-in-LaTeX-mode)
+;; Compile command:1 ends here
 
 ;; [[file:config.org::*Uncategorized Configuration][Uncategorized Configuration:1]]
 

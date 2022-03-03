@@ -69,7 +69,7 @@
 (package! ledger-mode)
 (package! org-sidebar)
 (package! org-bullets)
-(package! pdf-tools) ;; for
+;; (package! pdf-tools) ;; don't install with package! install it with init.el instead
 (package! ox-reveal)
 ;; dap-mode is highlighted in pink while other is highlighted in white. Does it mean it always is loaded by doom emacs?
 (package! dap-mode)
@@ -96,7 +96,7 @@
 ;; environment variables managers
 ;; (package! conda)
 ;; (package! pyvenv)
-;; (package! lispy)
+(package! lispy)
 ;; (package! lispyville)
 
 (package! lsp-metals)                   ;; lsp for  scala-mode
@@ -115,3 +115,11 @@
 (package! yankpad)
 (package! org-transclusion)
 (package! ox-reveal)
+;; (package! bbdb)
+(package! default-text-scale)
+(package! ox-hugo)
+(package! slurm-mode)
+;; (package! ox-latex)
+(package! org-download)
+;; (package! powershell) ;; buggy
+(package! org-fragtog)
