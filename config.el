@@ -51,6 +51,13 @@
 ;; they are implemented.
 ;; Doom Default configuration:1 ends here
 
+;; [[file:config.org::*My custom functions][My custom functions:1]]
+(defun my/anak-yank-dir-path ()
+  (interactive)
+  (message "Copy to clipboard: %s"
+           (kill-new (s-join "/"  (butlast (split-string default-directory "/") 1)))))
+;; My custom functions:1 ends here
+
 ;; [[file:config.org::*highlighting words and symbols][highlighting words and symbols:1]]
 ;; unhighlight all highlight that is highlighted by hi-lock
 ;; ref: https://emacs.stackexchange.com/questions/19861/how-to-unhighlight-symbol-highlighted-with-highlight-symbol-at-point
@@ -403,6 +410,43 @@ corresponding to the indentation of the current line"
 ;; [[file:config.org::*benchmarking][benchmarking:1]]
 
 ;; benchmarking:1 ends here
+
+;; [[file:config.org::*searching the most published MELPA Authors][searching the most published MELPA Authors:1]]
+;; https://www.reddit.com/r/emacs/comments/t9qs6h/need_help_listing_all_emacs_super_developers/
+(require 'url)
+(require 'cl-lib)
+(defvar url-http-end-of-headers)
+(defvar smelpa-json nil "Melpa recipe JSON data.")
+
+(defun smelpa-json ()
+  "Return an alist of MELPA recipe metadata."
+  (or smelpa-json
+      (setq smelpa-json
+            (with-current-buffer (url-retrieve-synchronously "https://melpa.org/archive.json")
+              (goto-char url-http-end-of-headers)
+              (json-read)))))
+(defun smelpa-packages-by-author ()
+  "Return alist of form: ((author . (package-url...)))."
+  (let (authors)
+    (cl-loop for (_ . data) in (smelpa-json)
+             do (when-let ((props     (alist-get 'props data))
+                           (url       (alist-get 'url props))
+                           (parsed    (url-generic-parse-url url))
+                           (filename  (url-filename parsed))
+                           (tokens    (split-string filename "/" 'omit-nulls))
+                           (author    (intern (car tokens))))
+                  (if (alist-get author authors)
+                      (push url (alist-get author authors))
+                    (push (cons author (list url)) authors))))
+    authors))
+(defun smelpa-most-published-authors (n)
+  "Return alist of form ((author . (url...))) for top N published MELPA authors."
+  (let ((authors (smelpa-packages-by-author)))
+    (cl-subseq
+     (cl-sort authors #'>
+              :key (lambda (cell) (length (cdr cell))))
+     0 (min n (length authors)))))
+;; searching the most published MELPA Authors:1 ends here
 
 ;; [[file:config.org::*Org tree slide helper][Org tree slide helper:1]]
 ;; org-tree-slide
@@ -931,7 +975,7 @@ A prefix arg forces clock in of the default task."
 (global-set-key (kbd "<f5>") 'bh/org-todo)
 (global-set-key (kbd "<S-f5>") 'bh/widen)
 (global-set-key (kbd "<f7>") 'bh/set-truncate-lines)
-(global-set-key (kbd "<f8>") 'org-cycle-agenda-files)
+;; (global-set-key (kbd "<f8>") 'org-cycle-agenda-files)
 (global-set-key (kbd "<f9> <f9>") 'bh/show-org-agenda)
 (global-set-key (kbd "<f9> b") 'bbdb)
 (global-set-key (kbd "<f9> c") 'calendar)
@@ -969,6 +1013,9 @@ A prefix arg forces clock in of the default task."
 
 (map! :leader "m s c" #'org-copy-subtree)
 (map! :leader "m s C" #'org-clone-subtree-with-time-shift)
+
+(map! :leader "f ." #'my/anak-yank-dir-path)
+(define-key treemacs-mode-map (kbd "M-h") 'treemacs-goto-parent-node)
 ;; Key binding configuration:1 ends here
 
 ;; [[file:config.org::*basic configuration][basic configuration:1]]
@@ -976,6 +1023,7 @@ A prefix arg forces clock in of the default task."
 ;; (desktop-save-mode 1)
 (setq load-prefer-newer t)
 (setq which-function-mode t)
+(require 'ol-info) ;; this allow one to link a page to emacs internal manual.
 ;; basic configuration:1 ends here
 
 ;; [[file:config.org::*configuration to increase ease of editing.][configuration to increase ease of editing.:1]]
@@ -1030,7 +1078,11 @@ A prefix arg forces clock in of the default task."
 (use-package! simple-httpd)
 ;; simple-httpd:1 ends here
 
-;; [[file:config.org::*Bookmark][Bookmark:1]]
+;; [[file:config.org::*org-bookmark-heading][org-bookmark-heading:1]]
+(require 'org-bookmark-heading)
+;; org-bookmark-heading:1 ends here
+
+;; [[file:config.org::*Bookmark+][Bookmark+:1]]
 ;; (use-package bookmark+
 ;;                 :quelpa (bookmark+ :fetcher wiki
 ;;                                 :files
@@ -1043,7 +1095,7 @@ A prefix arg forces clock in of the default task."
 ;;                                     "bookmark+-doc.el"
 ;;                                     "bookmark+-chg.el"))
 ;;                 :defer 2)
-;; Bookmark:1 ends here
+;; Bookmark+:1 ends here
 
 ;; [[file:config.org::*ERC (IRC client)][ERC (IRC client):1]]
 (setq erc-server "irc.libera.chat"
@@ -1182,6 +1234,12 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   (add-hook 'cfn-yaml-mode-hook 'flycheck-mode))
 ;; cfn lint:1 ends here
 
+;; [[file:config.org::*evil mode][evil mode:1]]
+ (with-eval-after-load 'edebug
+   (evil-make-overriding-map edebug-mode-map '(normal motion))
+   (add-hook 'edebug-mode-hook 'evil-normalize-keymaps) )
+;; evil mode:1 ends here
+
 ;; [[file:config.org::*Dap Mode][Dap Mode:1]]
 ;; dap-mode
 (require 'dap-mode)
@@ -1242,6 +1300,15 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; (setq lsp-disabled-clients '((go-mode . gopls)))
 ;; (+lsp/switch-client pyls) ; this doesn't work.
 ;; LSP-mode:1 ends here
+
+;; [[file:config.org::*LSP-mode][LSP-mode:2]]
+;; How do I force lsp-mode to forget the workspace folders for multi root#
+;; ref: https://emacs-lsp.github.io/lsp-mode/page/faq/#how-do-i-force-lsp-mode-to-forget-the-workspace-folders-for-multi-root
+(advice-add 'lsp
+            :before (lambda (&rest _args)
+                      (eval '(setf (lsp-session-server-id->folders (lsp-session))
+                                   (ht)))))
+;; LSP-mode:2 ends here
 
 ;; [[file:config.org::*pyright setup][pyright setup:1]]
 ;; ref: https://github.com/emacs-lsp/lsp-pyright
@@ -1335,6 +1402,35 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; conduct search on symbol (it can be used in complementary to M-x consult-imenu. They suppose to do the same thing, but differ in few important aspect.)
 (map! :leader "s h" #'helm-semantic-or-imenu)
 ;; Helm:1 ends here
+
+;; [[file:config.org::*Helm Bibtex][Helm Bibtex:1]]
+;; ;; helm-bibtex url: https://rgoswami.me/posts/org-note-workflow/#indexing-notes
+  (setq
+   bibtex-completion-library-path "/home/awannaphasch2016/org/papers"
+   bibtex-completion-notes-path "/home/awannaphasch2016/org/org-roam/"
+   bibtex-completion-bibliography '(
+                                    ;; "/home/awannaphasch2016/org/main.bib"
+                                    ;; "/home/awannaphasch2016/Documents/MyPapers/Paper-Covid19TrendPredictionSurvey/references.bib"
+                                    "/home/awannaphasch2016/org/papers/zotero-bib.bib"
+                                    "/home/awannaphasch2016/org/papers/org-mode-bibtex.bib")
+   bibtex-completion-pdf-field "file"
+    bibtex-completion-notes-template-multiple-files
+ (concat
+  "#+TITLE: ${title}\n"
+  "#+FILETAGS: \n"
+  "#+ROAM_KEY: cite:&${=key=} \n"
+  "* ${title}\n"
+  ":PROPERTIES:\n"
+  ":Custom_ID: ${=key=}\n"
+  ":END:\n\n"
+  ))
+;; Helm Bibtex:1 ends here
+
+;; [[file:config.org::*citar][citar:1]]
+(setq citar-bibliography '("/home/awannaphasch2016/org/papers/zotero-bib.bib"))
+(setq citar-library-paths '("/home/awannaphasch2016/org/papers/"))
+(setq citar-notes-paths '("/home/awannaphasch2016/org/org-roam/"))
+;; citar:1 ends here
 
 ;; [[file:config.org::*Dap Mode =debug.el= Configuration][Dap Mode =debug.el= Configuration:1]]
 (dap-register-debug-template
@@ -1667,13 +1763,18 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; ref: https://akrl.sdf.org/
 (setq gc-cons-threshold #x40000000)
 
-;; (defun k-time ()
-;;   (- (current-time) ))
+(defmacro k-time (&rest body)
+  "Measure and return the time it takes evaluating BODY."
+  `(let ((time (current-time)))
+     ,@body
+     (float-time (time-since time))))
 
-(defvar k-gc-timer
-  (run-with-idle-timer 15 t
-                       (lambda () (message "Garbage Collector has run for %.0bfsec"
-                                           (k-time (garbage-collect))))))
+;; ;; I have to disable it because I can't read echo line when I debug. garbage-collect constantly produce echo.
+;; (defvar k-gc-timer
+;;   (run-with-idle-timer 15 t
+;;                        ;; (lambda () (message "Garbage Collector has run for %.0bfsec"
+;;                        ;;                     (k-time (garbage-collect))))
+;;                        (lambda () (k-time (garbage-collect)))))
 ;; Garbage colection:1 ends here
 
 ;; [[file:config.org::*Startup time Optimization][Startup time Optimization:1]]
@@ -1686,9 +1787,17 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; Startup time Optimization:1 ends here
 
 ;; [[file:config.org::*Emacs-Jupyter][Emacs-Jupyter:1]]
+(message "====================loads Emacs-jupyter===================================")
+;; Emacs-Jupyter:1 ends here
+
+;; [[file:config.org::*Emacs-Jupyter][Emacs-Jupyter:2]]
 (require 'jupyter)
 (require 'ob-jupyter)
-;; Emacs-Jupyter:1 ends here
+;; Emacs-Jupyter:2 ends here
+
+;; [[file:config.org::*Diagrams][Diagrams:1]]
+(message "====================loads Diagrams===================================")
+;; Diagrams:1 ends here
 
 ;; [[file:config.org::*mermaid][mermaid:1]]
 ;; (setq ob-mermaid-cli-path "/usr/local/bin/mmdc")
@@ -1699,38 +1808,12 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; (setq org-ditaa-jar-path "~/git/org-mode/contrib/scripts/ditaa.jar")
 ;; ditaa:1 ends here
 
-;; [[file:config.org::*Bibtex][Bibtex:1]]
-;; helm-bibtex url: https://rgoswami.me/posts/org-note-workflow/#indexing-notes
-(setq
- ;; bibtex-completion-notes-path '("/home/awannaphasch2016/Documents/MyNotes/" "/home/awannaphasch2016/org-roam/")
- bibtex-completion-notes-path "/home/awannaphasch2016/org-roam/"
- bibtex-completion-bibliography '("/home/awannaphasch2016/main.bib" "/home/awannaphasch2016/Documents/MyPapers/Paper-Covid19TrendPredictionSurvey/references.bib")
- bibtex-completion-pdf-field "file"
- bibtex-completion-notes-template-multiple-files
- (concat
-  "#+TITLE: ${title}\n"
-  "#+ROAM_KEY: cite:$
-{=key=}\n"
-  "* TODO Notes\n"
-  ":PROPERTIES:\n"
- ":Custom_ID: ${=key=}\n"
-  ":NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n"
-  ":AUTHOR: ${author-abbrev}\n"
-  ":JOURNAL: ${journaltitle}\n"
-  ":DATE: ${date}\n"
-  ":YEAR: ${year}\n"
-  ":DOI: ${doi}\n"
-  ":URL: ${url}\n"
-  ":END:\n\n"
-  ))
-;; Bibtex:1 ends here
-
 ;; [[file:config.org::*Org Mode][Org Mode:1]]
 ;; (add-to-list 'org-modules 'org-habit)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "/home/awannaphasch2016/org/") ;; :FIXME: currently, when doom/reload org-directory is set to /home/awannaphasch2016/org-roam. Not sure why.
+(setq org-directory "/home/awannaphasch2016/org/") ;
 
 ;; Separate drawers for clocking and logs
 (setq org-drawers (quote ("PROPERTIES" "LOGBOOK")))
@@ -1778,95 +1861,113 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 ;; [[file:config.org::*Org ref][Org ref:1]]
 ;; org-ref
-(setq
-         org-ref-completion-library 'org-ref-ivy-cite
-         org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
-         org-ref-default-bibliography (list "/home/awannaphasch2016/main.bib" "/home/awannaphasch2016/Documents/MyPapers/Paper-Covid19TrendPredictionSurvey/references.bib")
-         org-ref-bibliography-notes "/home/haozeke/Git/Gitlab/Mine/Notes/bibnotes.org"
-         org-ref-note-title-format "* TODO %y - %t\n :PROPERTIES:\n  :Custom_ID: %k\n  :NOTER_DOCUMENT: %F\n :ROAM_KEY: cite:%k\n  :AUTHOR: %9a\n  :JOURNAL: %j\n  :YEAR: %y\n  :VOLUME: %v\n  :PAGES: %p\n  :DOI: %D\n  :URL: %U\n :END:\n\n"
-         org-ref-notes-directory "/home/awannaphasch2016/org-roam/"
-         org-ref-notes-function 'orb-edit-notes
-    )
+;; (setq
+;;          org-ref-completion-library 'org-ref-ivy-cite
+;;          org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
+;;          org-ref-default-bibliography (list
+;;                                        ;; "/home/awannaphasch2016/org/main.bib"
+;;                                        ;; "/home/awannaphasch2016/Documents/MyPapers/Paper-Covid19TrendPredictionSurvey/references.bib"
+;;                                        "/home/awannaphasch2016/org/papers/zotero-bib.bib")
+;;          ;; org-ref-bibliography-notes "/home/haozeke/Git/Gitlab/Mine/Notes/bibnotes.org"
+;;          org-ref-note-title-format "* TODO %y - %t\n :PROPERTIES:\n  :Custom_ID: %k\n  :NOTER_DOCUMENT: %F\n :ROAM_KEY: cite:%k\n  :AUTHOR: %9a\n  :JOURNAL: %j\n  :YEAR: %y\n  :VOLUME: %v\n  :PAGES: %p\n  :DOI: %D\n  :URL: %U\n :END:\n\n"
+;;          org-ref-notes-directory "/home/awannaphasch2016/org/"
+;;          org-ref-notes-function 'orb-edit-notes
+;;     )
 ;; Org ref:1 ends here
+
+;; [[file:config.org::*Org ref][Org ref:2]]
+;; (setq org-ref-open-pdf-function 'my/org-ref-open-pdf-at-point)
+
+;; (defun my/org-ref-open-pdf-at-point ()
+;;   "Open the pdf for bibtex key under point if it exists."
+;;   (interactive)
+;;   (let* ((results (org-ref-get-bibtex-key-and-file))
+;;          (key (car results))
+;;          (pdf-file (funcall org-ref-get-pdf-filename-function key))
+;;      (pdf-other (bibtex-completion-find-pdf key)))
+;;     (cond ((file-exists-p pdf-file)
+;;        (org-open-file pdf-file))
+;;       (pdf-other
+;;        (org-open-file pdf-other))
+;;       (message "No PDF found for %s" key))))
+
+;; (defun my/org-ref-open-pdf-at-point ()
+;;   "Open the pdf for bibtex key under point if it exists."
+;;   (interactive)
+;;   (let* ((results (org-ref-get-bibtex-key-and-file))
+;;          (key (car results))
+;;          (pdf-file (funcall org-ref-get-pdf-filename-function key))
+;;      (pdf-other (car (helm-bibtex-find-pdf-in-library key))))
+;;     (cond ((file-exists-p pdf-file)
+;;        (org-open-file pdf-file))
+;;       (helm-bibtex-pdf-field
+;;        (funcall helm-bibtex-pdf-open-function
+;;             (helm-bibtex-find-pdf-in-field key)))
+;;       ((file-exists-p pdf-other)
+;;        (funcall helm-bibtex-pdf-open-function pdf-other))
+;;       (message "No PDF found for %s" key))))
+;; Org ref:2 ends here
+
+;; [[file:config.org::*Org roam][Org roam:1]]
+(setq org-roam-v2-ack t)
+(setq org-roam-complete-everywhere t)
+
+(setq
+ org_notes (concat (getenv "HOME")
+                   "/org/org-roam/"
+                   ;; "/org/brain/"
+                   )
+   ;; zot_bib (concat (getenv "HOME") "/org/main.bib")
+   ;; org-directory org_notes
+   deft-directory org_notes
+   org-roam-directory org_notes
+   )
+
+(setq org-roam-directory (expand-file-name (or org-roam-directory "roam")
+                                             org-directory)
+        org-roam-verbose nil  ; https://youtu.be/fn4jIlFwuLU
+        ; org-roam-buffer-no-delete-other-windows t ; make org-roam buffer sticky
+        org-roam-completion-system 'default
+)
+
+;; 7.3. Configuring the Org-roam buffer display (https://www.orgroam.com/manual.html#Configuring-the-Org_002droam-buffer-display)
+(add-to-list 'display-buffer-alist
+             '("\\*org-roam\\*"
+               ;; (display-buffer-in-direction)
+               ;; (direction . right)
+               ;; (window-width . 0.33)
+               ;; (window-height . fit-window-to-buffer)
+               ))
+;; Org roam:1 ends here
 
 ;; [[file:config.org::*Org Notes and PDF Tools][Org Notes and PDF Tools:1]]
 ;; set pdf-view-mode as default
 (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
-
-;; ;; org-noter
-;;  (use-package! org-noter
-;;   :after (:any org pdf-view)
-;;   :config
-;;   (setq
-;;    ;; The WM can handle splits
-;;    org-noter-notes-window-location 'other-frame
-;;    ;; Please stop opening frames
-;;    org-noter-always-create-frame nil
-;;    ;; I want to see the whole file
-;;    org-noter-hide-other nil
-;;    ;; Everything is relative to the main notes file
-;;    org-noter-notes-search-path (list org_notes))
-;;    (require 'org-noter-pdftools)
-;;   )
-
-;; ;; I am not sure what this do exactly. What even is the differences between pdf-tools and org-pdf-tools
-;; ;; pdf-tools
-;; (use-package pdf-tools
-;;    :pin manual
-;;    :config
-;;    (pdf-tools-install)
-;;    (setq-default pdf-view-display-size 'fit-width)
-;;    (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
-;;    :custom
-;;    (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
-
-;; (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
-;;       TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-;;       TeX-source-correlate-start-server t)
-
-;; (add-hook 'TeX-after-compilation-finished-functions
-;;           #'TeX-revert-document-buffer)
-
-;; ;; org-pdftools
-;; (use-package! org-pdftools
-;;   :hook (org-mode . org-pdftools-setup-link))
-
-;; ;;org-noter-pdftools
-;; (use-package! org-noter-pdftools
-;;   :after org-noter
-;;   :config
-;;   ;; Add a function to ensure precise note is inserted
-;;   (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
-;;     (interactive "P")
-;;     (org-noter--with-valid-session
-;;      (let ((org-noter-insert-note-no-questions (if toggle-no-questions
-;;                                                    (not org-noter-insert-note-no-questions)
-;;                                                  org-noter-insert-note-no-questions))
-;;            (org-pdftools-use-isearch-link t)
-;;            (org-pdftools-use-freestyle-annot t))
-;;        (org-noter-insert-note (org-noter--get-precise-info)))))
-
-;;   ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
-;;   (defun org-noter-set-start-location (&optional arg)
-;;     "When opening a session with this document, go to the current location.
-;; With a prefix ARG, remove start location."
-;;     (interactive "P")
-;;     (org-noter--with-valid-session
-;;      (let ((inhibit-read-only t)
-;;            (ast (org-noter--parse-root))
-;;            (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
-;;        (with-current-buffer (org-noter--session-notes-buffer session)
-;;          (org-with-wide-buffer
-;;           (goto-char (org-element-property :begin ast))
-;;           (if arg
-;;               (org-entry-delete nil org-noter-property-note-location)
-;;             (org-entry-put nil org-noter-property-note-location
-;;                            (org-noter--pretty-print-location location))))))))
-;;   (with-eval-after-load 'pdf-annot
-;;     (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
 ;; Org Notes and PDF Tools:1 ends here
 
+;; [[file:config.org::*Org Noter][Org Noter:1]]
+;; ref: https://rgoswami.me/posts/org-note-workflow/#indexing-notes
+(use-package! org-noter
+  :after (:any org pdf-view)
+  :config
+  (setq
+   ;; The WM can handle splits
+   ;; org-noter-notes-window-location 'other-frame
+   ;; Please stop opening frames
+   org-noter-always-create-frame nil
+   ;; I want to see the whole file
+   org-noter-hide-other nil
+   ;; Everything is relative to the main notes file
+   org-noter-notes-search-path (list org_notes))
+   (require 'org-noter-pdftools)
+  )
+;; Org Noter:1 ends here
+
 ;; [[file:config.org::*Org babel][Org babel:1]]
+(message "====================loads Org-Babel===================================")
+;; Org babel:1 ends here
+
+;; [[file:config.org::*Org babel][Org babel:2]]
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((ipython . t)
@@ -1875,14 +1976,15 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
    (go . t  )
    (python . t)
    (julia . t)
-   (ditaa . t)))
-;; Org babel:1 ends here
-
-;; [[file:config.org::*Org babel][Org babel:2]]
-(org-babel-lob-ingest "~/org/org-babel-library/library-of-babel.org")
+   (ditaa . t)
+   (dot . t)))
 ;; Org babel:2 ends here
 
 ;; [[file:config.org::*Org babel][Org babel:3]]
+(org-babel-lob-ingest "~/org/org-babel-library/library-of-babel.org")
+;; Org babel:3 ends here
+
+;; [[file:config.org::*Org babel][Org babel:4]]
 ;; set up recommended by John Kitchin
 ;; ref: https://www.youtube.com/watch?v=RD0o2pkJBaI&t=638s&ab_channel=JohnKitchin
 (setq org-babel-default-header-args '((:session . "jupyter-python")
@@ -1895,27 +1997,7 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
                                       (:eval . "never-export")
                                       (:kernel . "python3")
                                       (:pandoc . "t")))
-;; Org babel:3 ends here
-
-;; [[file:config.org::*Org roam][Org roam:1]]
-(setq org-roam-v2-ack t)
-(setq org-roam-complete-everywhere t)
-
-(setq
-   org_notes (concat (getenv "HOME") "/org-roam/")
-   zot_bib (concat (getenv "HOME") "/main.bib")
-   org-directory org_notes
-   deft-directory org_notes
-   org-roam-directory org_notes
-   )
-
-(setq org-roam-directory (expand-file-name (or org-roam-directory "roam")
-                                             org-directory)
-        org-roam-verbose nil  ; https://youtu.be/fn4jIlFwuLU
-        org-roam-buffer-no-delete-other-windows t ; make org-roam buffer sticky
-        org-roam-completion-system 'default
-)
-;; Org roam:1 ends here
+;; Org babel:4 ends here
 
 ;; [[file:config.org::*Org roam protocol][Org roam protocol:1]]
 ;; Since the org module lazy loads org-protocol (waits until an org URL is
@@ -1926,25 +2008,16 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 ;; [[file:config.org::*Org roam bibtex][Org roam bibtex:1]]
 ;; org-roam-bibtex
- (use-package! org-roam-bibtex
-  :after (org-roam)
-  :hook (org-roam-mode . org-roam-bibtex-mode)
-  :config
-  (require 'org-ref)
-  (setq org-roam-bibtex-preformat-keywords
-   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
-  (setq orb-templates
-        '(("r" "ref" plain (function org-roam-capture--get-point)
-           ""
-           :file-name "${slug}"
-           :head "#+TITLE: ${=key=}: ${title}\n#+ROAM_KEY: ${ref}
-
-- tags ::
-- keywords :: ${keywords}
-
-\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n  :NOTER_PAGE: \n  :END:\n\n"
-
-           :unnarrowed t))))
+(require 'org-roam-bibtex)
+;; (setq orb-preformat-keywords '("citekey" "author" "date" "title" "url" "file" "author-or-editor" "keywords"))
+(setq org-roam-capture-templates
+      '(("r" "bibliography reference" plain
+         (file "~/org/org-roam/template/citation.org") ; <-- template store in a separate file
+         :target
+         (file "~/org/org-roam/${citekey}.org"))
+        ("d" "default" plain "%?" :target
+         (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+         :unnarrowed t)))
 ;; Org roam bibtex:1 ends here
 
 ;; [[file:config.org::*Org capture][Org capture:1]]
@@ -2028,12 +2101,32 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
                          "/home/awannaphasch2016/org/school.org"
                          "/home/awannaphasch2016/org/expert-identification.org"
                          "/home/awannaphasch2016/org/life.org"
-                         "/home/awannaphasch2016/org/finance/personal-finance.org"))
+                         "/home/awannaphasch2016/org/finance/personal-finance.org"
+                         "/home/awannaphasch2016/org/finance/investing.org"
+                         "/home/awannaphasch2016/org/projects/sideprojects/semosis.org"
+                         "/home/awannaphasch2016/org/notes/blockchains/dao-the-rabbit-hole-note.org"
+                         "/home/awannaphasch2016/org/notes/economic-note.org"
+                         "/home/awannaphasch2016/org/notes/finance/portfolio-management-note.org"
+                         "/home/awannaphasch2016/org/notes/blockchains/token-engineering-common-note.org"
+                         "/home/awannaphasch2016/org/notes/blockchains/garun-blockchain-club-note.org"
+                         "/home/awannaphasch2016/org/projects/sideprojects/website/adam-website/adam-website-note.org"
+                         ))
 
 (setq org-default-notes-file "/home/awannaphasch2016/org/refile.org")
 
-;; to keep the agenda fast I set
-;; (setq org-agenda-span 'day) :FIXME: org agenda doesn't show today. it only shows 3 days eariler.
+;; ;; disable evil mode in org-agenda doesn't work.
+;; (set-evil-initial-state! 'org-agenda-mode 'emacs)
+(add-hook 'org-agenda-mode-hook #'turn-off-evil-mode nil)
+
+
+;; config set of days to be shown in org-agenda (https://emacs.stackexchange.com/questions/12517/how-do-i-make-the-timespan-shown-by-org-agenda-start-yesterday)
+;; (setq org-agenda-span 'day) ;; :FIXME: org agenda doesn't show today. it only shows 3 days eariler.
+;; (setq org-agenda-span 'week)
+(setq org-agenda-span 7)
+(setq org-agenda-start-day nil)
+;; (setq org-agenda-start-day "-1d")
+(setq org-agenda-start-on-weekday 1)
+
 
 ;; ref: http://doc.norang.ca/org-mode.html
 (setq org-deadline-warning-days 30)
@@ -2246,6 +2339,35 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (add-hook 'org-mode-hook 'org-fragtog-mode)
 ;; Org fragtog:1 ends here
 
+;; [[file:config.org::*Org sticky header][Org sticky header:1]]
+(add-hook 'org-mode-hook 'org-sticky-header-mode)
+;; Org sticky header:1 ends here
+
+;; [[file:config.org::*Org brain][Org brain:1]]
+;; ;; https://github.com/Kungsgeten/org-brain
+;; (require 'org-brain)
+;; (setq org-brain-path "~/org/brain/")
+;; ;; For Evil users
+;; (with-eval-after-load 'evil
+;;   (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
+
+;; ;; (bind-key "C-c b" 'org-brain-prefix-map org-mode-map)
+;; ;; (setq org-id-track-globally t)
+;; ;; (setq org-id-locations-file "~/.emacs.d/.org-id-locations")
+;; (add-hook 'before-save-hook #'org-brain-ensure-ids-in-buffer)
+;; (push '("b" "Brain" plain (function org-brain-goto-end)
+;;         "* %i%?" :empty-lines 1)
+;;       org-capture-templates)
+;; (setq org-brain-visualize-default-choices 'all)
+;; (setq org-brain-title-max-length 12)
+;; (setq org-brain-include-file-entries nil
+;;       org-brain-file-entries-use-title nil)
+;; Org brain:1 ends here
+
+;; [[file:config.org::*Polymode][Polymode:1]]
+;; (add-hook 'org-brain-visualize-mode-hook #'org-brain-polymode)
+;; Polymode:1 ends here
+
 ;; [[file:config.org::*Ace jump][Ace jump:1]]
 
 ;; Ace jump:1 ends here
@@ -2255,6 +2377,23 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; Avy:1 ends here
 
 ;; [[file:config.org::*elfeed][elfeed:1]]
+(setq rmh-elfeed-org-files '("~/org/elfeed.org"))
+(setq elfeed-goodies/entry-pane-size 0.50)
+
+(add-hook! 'elfeed-search-mode-hook 'elfeed-update)
+
+(after! elfeed
+  (setq elfeed-search-filter "@1-month-ago +unread"))
+
+(map! :leader "l f" 'elfeed)
+
+;; (setq elfeed-feeds
+;;       '("https://this-week-in-rust.org/rss.xml"
+;;         "http://feeds.bbci.co.uk/news/rss.xml"
+;;         "https://www.reddit.com/r/emacs.rss"
+;;         ))
+
+
 ;; Since note taking with emacs are still hard to integrate with the outside world.
 ;; I am moving on from any thing text related within emacs, and I don't mind
 ;; using closed source software inplace of rss emacs features.
@@ -2318,6 +2457,13 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (setq message-sendmail-f-is-evil 't)
 ;; mu4e:1 ends here
 
+;; [[file:config.org::*ox extra][ox extra:1]]
+(after! org
+  (use-package! ox-extra
+    :config
+    (ox-extras-activate '(latex-header-blocks ignore-headlines))))
+;; ox extra:1 ends here
+
 ;; [[file:config.org::*ox reveal][ox reveal:1]]
 (require 'ox-reveal)
 ;; ox reveal:1 ends here
@@ -2336,6 +2482,23 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 ;; [[file:config.org::*ox-hugo][ox-hugo:1]]
 (require 'ox-hugo)
+
+;; org-ref citation
+;; reference:https://ox-hugo.scripter.co/doc/org-ref-citations/
+(use-package org-ref
+  :ensure t
+  :init
+  (with-eval-after-load 'ox
+    (defun my/org-ref-process-buffer--html (backend)
+      "Preprocess `org-ref' citations to HTML format.
+
+Do this only if the export backend is `html' or a derivative of
+that."
+      ;; `ox-hugo' is derived indirectly from `ox-html'.
+      ;; ox-hugo <- ox-blackfriday <- ox-md <- ox-html
+      (when (org-export-derived-backend-p backend 'html)
+        (org-ref-process-buffer 'html)))
+    (add-to-list 'org-export-before-parsing-hook #'my/org-ref-process-buffer--html)))
 ;; ox-hugo:1 ends here
 
 ;; [[file:config.org::*multi-term][multi-term:1]]
@@ -2351,11 +2514,12 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
     ;; code here will run immediately
     :config
     ;; code here will run after the package is loaded
-    (setq org-latex-pdf-process
-          '("pdflatex -interaction nonstopmode -output-directory %o %f"
-            "bibtex %b"
-            "pdflatex -interaction nonstopmode -output-directory %o %f"
-            "pdflatex -interaction nonstopmode -output-directory %o %f"))
+    ;; (setq org-latex-pdf-process
+    ;;       '("pdflatex -interaction nonstopmode -output-directory %o %f"
+    ;;         "bibtex %b"
+    ;;         "pdflatex -interaction nonstopmode -output-directory %o %f"
+    ;;         "pdflatex -interaction nonstopmode -output-directory %o %f"))
+    (setq org-latex-pdf-process (list "latexmk -shell-escape -bibtex -f -pdf %f"))
     (setq org-latex-with-hyperref nil) ;; stop org adding hypersetup{author..} to latex export
     ;; (setq org-latex-prefer-user-labels t)
 
@@ -2409,25 +2573,50 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 "
 
                ("\\cvsection{%s}" . "\\cvsection*{%s}")))
+
 (add-to-list 'org-latex-classes
-             '("IEEE" "\\documentclass[10pt,journal,compsoc]{IEEEtran}"))
+             '("IEEE" "\\documentclass{IEEEtran}"
+  ("\\section{%s}" . "\\section*{%s}")
+  ("\\subsection{%s}" . "\\subsection*{%s}")
+  ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+  ("\\paragraph{%s}" . "\\paragraph*{%s}")
+  ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+(add-to-list 'org-latex-classes
+             '("acmart" "\\documentclass{acmart}"
+  ("\\section{%s}" . "\\section*{%s}")
+  ("\\subsection{%s}" . "\\subsection*{%s}")
+  ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+  ("\\paragraph{%s}" . "\\paragraph*{%s}")
+  ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+
+(add-to-list 'org-latex-classes
+             '("org-plain-text"
+               "\\documentclass{article}
+[NO-DEFAULT-PACKAGES]
+[PACKAGES]
+[EXTRA]"
+
+                ("\\section{%s}" . "\\section*{%s}")
+                ("\\subsection{%s}" . "\\subsection*{%s}")
+                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 ;; templates:1 ends here
 
 ;; [[file:config.org::*version 1][version 1:1]]
 (defun anak/my-yank-image-from-win-clipboard-through-powershell() "to simplify the logic, use c:/Users/Public as temporary directoy, and move it into current directoy"
-  (interactive)
-  (let* ((powershell "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe")
-         (file-name (format-time-string "screenshot_%Y%m%d_%H%M%S.png"))
-         ;; (file-name (format-time-string "tmp.txt"))
-         ;; (file-path-powershell (concat "c:/Users/\$env:USERNAME/" file-name))
-         (file-path-wsl (concat "./images/" file-name))
-         )
-    ;; (shell-command (concat powershell " -command \"(Get-Clipboard -Format Image).Save(\\\"C:/Users/\\$env:USERNAME/" file-name "\\\")\""))
-    (shell-command (concat powershell " -command \"(Get-Clipboard -Format Image).Save(\\\"C:/Users/Public/" file-name "\\\")\""))
-    (rename-file (concat "/mnt/c/Users/Public/" file-name) file-path-wsl)
-    (insert (concat "[[file:" file-path-wsl "]]"))
-    (message "insert DONE.")
-    ))
+       (interactive)
+       (let* ((powershell "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe")
+              (file-name (format-time-string "screenshot_%Y%m%d_%H%M%S.png"))
+              (file-path-wsl (concat "./images/" file-name))
+              )
+         (make-directory "images" ".")
+         (shell-command (concat powershell " -command \"(Get-Clipboard -Format Image).Save(\\\"./images/" file-name "\\\")\""))
+         ;; (rename-file (concat "/mnt/c/Users/Public/images/" file-name) file-path-wsl)
+         (insert (concat "[[file:" file-path-wsl "]]"))
+         (message "insert DONE.")
+         ))
 ;; version 1:1 ends here
 
 ;; [[file:config.org::*version 2][version 2:1]]
@@ -2486,6 +2675,159 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
           'set-compile-command-default-in-LaTeX-mode)
 ;; Compile command:1 ends here
 
-;; [[file:config.org::*Uncategorized Configuration][Uncategorized Configuration:1]]
+;; [[file:config.org::*Common Lisp][Common Lisp:1]]
+(setq inferior-lisp-program "sbcl")
+;; Common Lisp:1 ends here
 
-;; Uncategorized Configuration:1 ends here
+;; [[file:config.org::*Scimax][Scimax:1]]
+;; (load-file "~/Downloads/scimax/init.el")
+;; Scimax:1 ends here
+
+;; [[file:config.org::*scimax-jupyter][scimax-jupyter:1]]
+(load-file "~/Downloads/scimax/scimax-ob.el")
+(load-file "~/Downloads/scimax/scimax-jupyter.el")
+;; scimax-jupyter:1 ends here
+
+;; [[file:config.org::*scimax-jupyter][scimax-jupyter:2]]
+(scimax-jupyter-advise)
+;; scimax-jupyter:2 ends here
+
+;; [[file:config.org::*stack exchage (sx.el)][stack exchage (sx.el):1]]
+;; (add-hook 'sx-question-mode-hook (lambda () (turn-off-evil-mode))) ;; work
+;; (add-hook 'sx-question-list-mode-hook #'turn-off-evil-mode) ;; doesn't work. not sure why.
+(set-evil-initial-state! 'sx-question-list-mode 'emacs)
+(set-evil-initial-state! 'sx-question-mode 'emacs)
+;; stack exchage (sx.el):1 ends here
+
+;; [[file:config.org::*stack exchage (sx.el)][stack exchage (sx.el):2]]
+(after! org
+       (use-package! sx
+         :config
+         (bind-keys :prefix "C-c s"
+                    :prefix-map my-sx-map
+                    :prefix-docstring "Global keymap for SX."
+                    ("q" . sx-tab-all-questions)
+                    ("i" . sx-inbox)
+                    ("o" . sx-open-link)
+                    ("u" . sx-tab-unanswered-my-tags)
+                    ("a" . sx-ask)
+                    ("s" . sx-search))))
+
+(map! :leader "l s" 'sx-ask)
+;; stack exchage (sx.el):2 ends here
+
+;; [[file:config.org::*yankpad][yankpad:1]]
+(setq yankpad-file "~/org/yankpad.org")
+(map! :leader "y m" #'yankpad-map)
+(map! :leader "y i" #'yankpad-insert)
+(map! :leader "y x" #'yankpad-expand)
+(map! :leader "y c" #'yankpad-capture-snippet)
+(map! :leader "y s" #'yankpad-set-category)
+(map! :leader "y e" #'yankpad-edit)
+(map! :leader "y p" #'yankpad-aya-persist)
+(map! :leader "y r" #'yankpad-reload)
+;; yankpad:1 ends here
+
+;; [[file:config.org::*Code Library][Code Library:1]]
+(setq code-library-directory "~/org/CodeLibrary"
+      code-library-sync-to-gist t)
+;; Code Library:1 ends here
+
+;; [[file:config.org::*Hierarchy][Hierarchy:1]]
+(load-file "~/.emacs.d/.local/straight/repos/hierarchy/hierarchy.el")
+(require 'hierarchy)
+;; Hierarchy:1 ends here
+
+;; [[file:config.org::*reddit (md4rd packages)][reddit (md4rd packages):1]]
+(require 'md4rd)
+
+;; authentication
+(add-hook 'md4rd-mode-hook 'md4rd-indent-all-the-lines)
+(setq md4rd-subs-active '(emacs lisp+Common_Lisp orgmode OrgRoam))
+;; (setq md4rd--oauth-access-token "your-access-token-here")
+;; (setq md4rd--oauth-refresh-token "your-refresh-token-here")
+;; (run-with-timer 0 3540 'md4rd-refresh-login))
+
+(add-hook 'md4rd-mode-hook #'turn-off-evil-mode nil)
+;; (set-evil-initial-state! 'sx-question-list-mode 'emacs)
+(map! :leader "l r" 'md4rd)                   ;; logging to reddit
+
+;; (map! :leader "l s r u" 'tree-mode-goto-parent)
+;; (map! :leader "l s r o" 'md4rd-open)
+;; (map! :leader "l s r v" 'md4rd-visit)
+;; (map! :leader "l s r e" 'tree-mode-toggle-expand)
+;; (map! :leader "l s r E" 'md4rd-widget-expand-all)
+;; (map! :leader "l s r C" 'md4rd-widget-collapse-all)
+;; (map! :leader "l s r n" 'widget-forward)
+;; (map! :leader "l s r j" 'widget-forward)
+;; (map! :leader "l s r h" 'backward-button)
+;; (map! :leader "l s r p" 'widget-backward)
+;; (map! :leader "l s r k" 'widget-backward)
+;; (map! :leader "l s r l" 'forward-button)
+;; (map! :leader "l s r q" 'kill-current-buffer)
+;; (map! :leader "l s r r" 'md4rd-reply)
+;; (map! :leader "l s r u" 'md4rd-upvote)
+;; (map! :leader "l s r d" 'md4rd-downvote)
+;; (map! :leader "l s r t" 'md4rd-widget-toggle-line)
+;; reddit (md4rd packages):1 ends here
+
+;; [[file:config.org::*howdoyou][howdoyou:1]]
+(map! :leader "l h" 'howdoyou-query)
+;; howdoyou:1 ends here
+
+;; [[file:config.org::*langtool][langtool:1]]
+(setq langtool-language-tool-jar "~/Downloads/LanguageTool-5.6-stable/languagetool-commandline.jar")
+(map! :leader "l l c" 'langtool-check)
+(map! :leader "l l q" 'langtool-check-done)
+;; (map! :leader "l l s" 'langtool-switch-default-language)
+(map! :leader "l l m" 'langtool-show-message-at-point)
+(map! :leader "l l e" 'langtool-correct-buffer)
+;; langtool:1 ends here
+
+;; [[file:config.org::*spell fu][spell fu:1]]
+;; (after! spell-fu)
+;; (setf (alist-get 'markdown-mode '+spell-excluded-faces-alist)
+;;       '(markdown-code-face
+;;         markdown-reference-face
+;;         markdown-link-face
+;;         markdown-url-face
+;;         markdown-markup-face
+;;         markdown-html-attr-value-face
+;;         markdown-html-attr-name-face
+;;         markdown-html-tag-name-face))
+
+;; (setf (alist-get 'org-mode '+spell-excluded-faces-alist)
+;;       '(org-block-begin-line
+;;        org-block-end-line
+;;        org-code
+;;        org-date
+;;        org-drawer org-document-info-keyword
+;;        org-ellipsis
+;;        org-link
+;;        org-meta-line
+;;        org-properties
+;;        org-properties-value
+;;        org-special-keyword
+;;        org-src
+;;        org-tag
+;;        org-verbatim))
+;; spell fu:1 ends here
+
+;; [[file:config.org::*flyspell][flyspell:1]]
+(map! :n "z ." 'flyspell-correct-wrapper)
+;; flyspell:1 ends here
+
+;; [[file:config.org::*org superlink][org superlink:1]]
+(add-to-list 'load-path "~/.emacs.d/manual-install/org-super-links/")
+(require 'org-super-links)
+(use-package! org-super-links
+  :bind (("C-c s s" . org-super-links-link)
+	   ("C-c s l" . org-super-links-store-link)
+	   ("C-c s C-l" . org-super-links-insert-link)))
+;; (map! :leader "n l" #'org-super-links-store-link)
+;; (map! :leader "m l l" #'org-super-links-insert-link)
+;; org superlink:1 ends here
+
+;; [[file:config.org::*ledger][ledger:1]]
+(add-to-list 'auto-mode-alist '("\\.dat\\'" . ledger-mode))
+;; ledger:1 ends here

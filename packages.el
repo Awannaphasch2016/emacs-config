@@ -49,10 +49,11 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 
-(package! org-roam-bibtex
-  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; (package! org-roam-bibtex
+;;   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 
 ;; When using org-roam via the `+roam` flag
+(package! org-roam-bibtex)
 (unpin! org-roam)
 
 ;; When using bibtex-completion via the `biblio` module
@@ -74,7 +75,7 @@
 ;; dap-mode is highlighted in pink while other is highlighted in white. Does it mean it always is loaded by doom emacs?
 (package! dap-mode)
 ;; (package! dap-lldb)
-(package! elfeed-goodies)
+;; (package! elfeed-goodies)
 (package! leetcode)
 (package! simple-httpd)
 (package! bookmark+)
@@ -123,3 +124,35 @@
 (package! org-download)
 ;; (package! powershell) ;; buggy
 (package! org-fragtog)
+(package! define-word)
+;; (package! synonyms)
+(package! powerthesaurus)
+(package! slime)
+(package! jupyter)
+(package! pretty-hydra)
+(package! org-transclusion)             ;; or roam-block
+;; (package! bookmark-plus)
+(package! org-sticky-header)
+;; (package! good-scroll) ;; doesn't work
+;; (package! smooth-scroll) ;; doesn't work
+;; (package! smooth-scrolling) ;; doesn't work
+(package! org-bookmark-heading)
+;; (package! yagist) ;; init.el/gists is better
+(package! org-brain)                    ;;
+(package! polymode)
+(package! code-library)
+(package! sx)
+(package! emacs-sos)                    ;; ask question on stack exchange
+(package! howdoyou)                     ;; search for answer
+(package! md4rd)                        ;; mode for reddit
+(package! hierarchy)                    ;; dependencies of md4rd
+(package! elfeed-score)
+;; (package! citar)
+;; (package! zen-mode)
+;; (package! lsp-grammarly)
+;; (package! eva
+;;   :recipe (:host github :repo "meedstrom/eva"
+;;            :files (:defaults "assets"  "renv" "*.R" "*.gnuplot")))
+(package! annotate)
+(package! zotxt)
+;; (package! org-super-links)

@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# contributor: Anak Wannaphaschaiyong
+# name: hugo base dir
+# key: hugo
+# --
+
+#+hugo_base_dir: /home/awannaphasch2016/org/projects/sideprojects/website/my-website/hugo/quickstart

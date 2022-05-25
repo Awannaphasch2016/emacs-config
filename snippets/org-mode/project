@@ -1,0 +1,21 @@
+# -*- mode: snippet -*-
+# name: project
+# key: proj
+# condition: t
+# --
+* $1
+** Habit :habit:
+:PROPERTIES:
+:CATEGORY: Habit
+:LOGGING: DONE(!)
+:ARCHIVE:  %s_archive::* Habits
+:END:
+** Notes :note:
+** Meeting :meeting:
+** Schedule
+*** recurring :recurring:
+*** non-recurring :nonrecurring:
+** Delegation :waiting:
+** Tasks
+*** actionable :actionable:
+*** incubation :incubation:
