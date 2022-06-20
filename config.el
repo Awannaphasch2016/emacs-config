@@ -1015,7 +1015,17 @@ A prefix arg forces clock in of the default task."
 (map! :leader "m s C" #'org-clone-subtree-with-time-shift)
 
 (map! :leader "f ." #'my/anak-yank-dir-path)
-(define-key treemacs-mode-map (kbd "M-h") 'treemacs-goto-parent-node)
+
+;; search
+(eval-after-load 'python-mode
+  (lambda ()
+    (map! :leader "m c a" #'ein:worksheet-insert-cell-above)
+    (map! :leader "m c b" #'ein:worksheet-insert-cell-below)))
+
+;; edebug
+;; (eval-after-load 'edebug-mode
+;;   (lambda ()
+;;     (map! :nvi "v" nil)))
 ;; Key binding configuration:1 ends here
 
 ;; [[file:config.org::*basic configuration][basic configuration:1]]
@@ -1235,9 +1245,14 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; cfn lint:1 ends here
 
 ;; [[file:config.org::*evil mode][evil mode:1]]
+(defun my-edebug-mode-map-hook ()
+  (define-key edebug-mode-map "v" nil)
+  (define-key edebug-mode-map "t" nil))
+
  (with-eval-after-load 'edebug
-   (evil-make-overriding-map edebug-mode-map '(normal motion))
-   (add-hook 'edebug-mode-hook 'evil-normalize-keymaps) )
+   (evil-make-overriding-map edebug-mode-map '(normal motion insert))
+   (add-hook 'edebug-mode-hook 'evil-normalize-keymaps)
+   (add-hook 'edebug-mode-hook 'my-edebug-mode-map-hook))
 ;; evil mode:1 ends here
 
 ;; [[file:config.org::*Dap Mode][Dap Mode:1]]
@@ -1757,6 +1772,10 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 ;; [[file:config.org::*Edebug][Edebug:1]]
 (set-fringe-style (quote (12 . 8)))
+
+; resolve key conflict.
+;(define-key edebug-mode-map (kbd "SPC") nil)
+;(define-key global-edebug-map (kbd "SPC") nil)
 ;; Edebug:1 ends here
 
 ;; [[file:config.org::*Garbage colection][Garbage colection:1]]
@@ -1786,6 +1805,10 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (add-hook 'emacs-startup-hook #'anak/display-startup-time)
 ;; Startup time Optimization:1 ends here
 
+;; [[file:config.org::*Ein][Ein:1]]
+; (message "====================loads ein===================================")
+;; Ein:1 ends here
+
 ;; [[file:config.org::*Emacs-Jupyter][Emacs-Jupyter:1]]
 (message "====================loads Emacs-jupyter===================================")
 ;; Emacs-Jupyter:1 ends here
@@ -1809,6 +1832,7 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; ditaa:1 ends here
 
 ;; [[file:config.org::*Org Mode][Org Mode:1]]
+(message "====================loads Org Mode===================================")
 ;; (add-to-list 'org-modules 'org-habit)
 
 ;; If you use `org' and don't want your org files in the default location below,
@@ -1855,6 +1879,7 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; Org Mode:1 ends here
 
 ;; [[file:config.org::*Org bullets][Org bullets:1]]
+(message "====================loads Org Bullets===================================")
 (require 'org-bullets)
 (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
 ;; Org bullets:1 ends here
@@ -1946,21 +1971,23 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; Org Notes and PDF Tools:1 ends here
 
 ;; [[file:config.org::*Org Noter][Org Noter:1]]
+(message "====================loads Org-Noter===================================")
+;; line below cause: Error in private config: config.el, (error pdf-info-epdfinfo-program is not executable)
 ;; ref: https://rgoswami.me/posts/org-note-workflow/#indexing-notes
-(use-package! org-noter
-  :after (:any org pdf-view)
-  :config
-  (setq
-   ;; The WM can handle splits
-   ;; org-noter-notes-window-location 'other-frame
-   ;; Please stop opening frames
-   org-noter-always-create-frame nil
-   ;; I want to see the whole file
-   org-noter-hide-other nil
-   ;; Everything is relative to the main notes file
-   org-noter-notes-search-path (list org_notes))
-   (require 'org-noter-pdftools)
-  )
+;; (use-package! org-noter
+;;   :after (:any org pdf-view)
+;;   :config
+;;   (setq
+;;    ;; The WM can handle splits
+;;    ;; org-noter-notes-window-location 'other-frame
+;;    ;; Please stop opening frames
+;;    org-noter-always-create-frame nil
+;;    ;; I want to see the whole file
+;;    org-noter-hide-other nil
+;;    ;; Everything is relative to the main notes file
+;;    org-noter-notes-search-path (list org_notes))
+;;    (require 'org-noter-pdftools)
+;;   )
 ;; Org Noter:1 ends here
 
 ;; [[file:config.org::*Org babel][Org babel:1]]
@@ -2426,35 +2453,35 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; elfeed:1 ends here
 
 ;; [[file:config.org::*mu4e][mu4e:1]]
-; make sure emacs finds applications in /usr/local/bin
-(setq exec-path (cons "/usr/local/bin" exec-path))
+;; ; make sure emacs finds applications in /usr/local/bin
+;; (setq exec-path (cons "/usr/local/bin" exec-path))
 
-; require mu4e
-(require 'mu4e)
+;; ; require mu4e
+;; (require 'mu4e)
 
-; tell mu4e where my Maildir is
-(setq mu4e-maildir "~/Mails")
-; tell mu4e how to sync email
-(setq mu4e-get-mail-command "/usr/bin/mbsync -a")
-; tell mu4e to use w3m for html rendering
-(setq mu4e-html2text-command "/usr/bin/w3m -T text/html")
+;; ; tell mu4e where my Maildir is
+;; (setq mu4e-maildir "~/Mails")
+;; ; tell mu4e how to sync email
+;; (setq mu4e-get-mail-command "/usr/bin/mbsync -a")
+;; ; tell mu4e to use w3m for html rendering
+;; (setq mu4e-html2text-command "/usr/bin/w3m -T text/html")
 
-; taken from mu4e page to define bookmarks
-(add-to-list 'mu4e-bookmarks
-            '("size:5M..500M"       "Big messages"     ?b))
+;; ; taken from mu4e page to define bookmarks
+;; (add-to-list 'mu4e-bookmarks
+;;             '("size:5M..500M"       "Big messages"     ?b))
 
-; mu4e requires to specify drafts, sent, and trash dirs
-; a smarter configuration allows to select directories according to the account (see mu4e page)
-(setq mu4e-drafts-folder "/drafts")
-(setq mu4e-sent-folder "/sent")
-(setq mu4e-trash-folder "/trash")
+;; ; mu4e requires to specify drafts, sent, and trash dirs
+;; ; a smarter configuration allows to select directories according to the account (see mu4e page)
+;; (setq mu4e-drafts-folder "/drafts")
+;; (setq mu4e-sent-folder "/sent")
+;; (setq mu4e-trash-folder "/trash")
 
-; use msmtp
-(setq message-send-mail-function 'message-send-mail-with-sendmail)
-(setq sendmail-program "/usr/bin/msmtp")
-; tell msmtp to choose the SMTP server according to the from field in the outgoing email
-(setq message-sendmail-extra-arguments '("--read-envelope-from"))
-(setq message-sendmail-f-is-evil 't)
+;; ; use msmtp
+;; (setq message-send-mail-function 'message-send-mail-with-sendmail)
+;; (setq sendmail-program "/usr/bin/msmtp")
+;; ; tell msmtp to choose the SMTP server according to the from field in the outgoing email
+;; (setq message-sendmail-extra-arguments '("--read-envelope-from"))
+;; (setq message-sendmail-f-is-evil 't)
 ;; mu4e:1 ends here
 
 ;; [[file:config.org::*ox extra][ox extra:1]]
@@ -2673,6 +2700,13 @@ that."
 
 (add-hook 'LaTeX-mode-hook
           'set-compile-command-default-in-LaTeX-mode)
+
+(defun set-compile-command-default-in-rjsx-mode ()
+  (set (make-local-variable 'compile-command)
+                 (format "node %s" (buffer-file-name))))
+
+(add-hook 'rjsx-mode-hook
+          'set-compile-command-default-in-rjsx-mode)
 ;; Compile command:1 ends here
 
 ;; [[file:config.org::*Common Lisp][Common Lisp:1]]
@@ -2684,13 +2718,10 @@ that."
 ;; Scimax:1 ends here
 
 ;; [[file:config.org::*scimax-jupyter][scimax-jupyter:1]]
-(load-file "~/Downloads/scimax/scimax-ob.el")
-(load-file "~/Downloads/scimax/scimax-jupyter.el")
+;; (load-file "~/Downloads/scimax/scimax-ob.el")
+;; (load-file "~/Downloads/scimax/scimax-jupyter.el")
+;; (scimax-jupyter-advise)
 ;; scimax-jupyter:1 ends here
-
-;; [[file:config.org::*scimax-jupyter][scimax-jupyter:2]]
-(scimax-jupyter-advise)
-;; scimax-jupyter:2 ends here
 
 ;; [[file:config.org::*stack exchage (sx.el)][stack exchage (sx.el):1]]
 ;; (add-hook 'sx-question-mode-hook (lambda () (turn-off-evil-mode))) ;; work
@@ -2831,3 +2862,8 @@ that."
 ;; [[file:config.org::*ledger][ledger:1]]
 (add-to-list 'auto-mode-alist '("\\.dat\\'" . ledger-mode))
 ;; ledger:1 ends here
+
+;; [[file:config.org::*treemacs][treemacs:1]]
+(require 'treemacs)
+(define-key treemacs-mode-map (kbd "M-h") 'treemacs-goto-parent-node)
+;; treemacs:1 ends here

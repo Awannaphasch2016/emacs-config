@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name: functional component
+# key: rafce
+# condition: t
+# --
+import React from 'react'
+
+const App = () => {
+  return (
+    <div>App</div>
+  )
+}
+
+export default App

@@ -156,3 +156,6 @@
 (package! annotate)
 (package! zotxt)
 ;; (package! org-super-links)
+(package! ein)
+;; (package! emacs-everywhere)
+(package! impatient-mode)
