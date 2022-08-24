@@ -1,11 +1,10 @@
 # -*- mode: snippet -*-
 # name: shell block with random name
-# key: n<sh
+# key: <shn
 # condition: t
 # --
 
-
-#+name:
+#+name: `(* (random 100000) (random 100000))`
 #+BEGIN_SRC sh
 $0
 #+END_SRC

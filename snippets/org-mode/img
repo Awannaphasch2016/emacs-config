@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: image decorator
+# key: imgd
+# condition: t
+# --
+
+#+name: $1
+#+caption: $2
+#+attr_html: :width 500px
+$3

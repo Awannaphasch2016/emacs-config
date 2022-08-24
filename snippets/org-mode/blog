@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: blog
+# key: blog
+# condition: t
+# --
+
+* Blog :blog:
+** $0

@@ -73,6 +73,26 @@
   (interactive)
   (message "Copy to clipboard: %s"
            (kill-new (s-join "/"  (butlast (split-string default-directory "/") 1)))))
+
+;; count line in dir
+;; 1. select directory
+;; 2. recieve string as input
+;; run shell command
+;; 3. find . -name "*.py" | xargs wc -l | awk '{print $1}' | sum
+;; (defun anak/count-line-in-dir)
+
+(defun anak/toggle-scratch-buffer ()
+  (interactive)
+  (if (string-match-p "^\\*doom:scratch" (buffer-name))
+      (quit-window)
+    (doom/open-scratch-buffer)))
+
+(map! :leader "\"" 'anak/toggle-scratch-buffer)
+
+
+(defun anak/insert-random-int ()
+  (interactive)
+  (insert (int-to-string (* (random 100000) (random 10000)))))
 #+END_SRC
 
 ** highlighting words and symbols
@@ -1001,6 +1021,12 @@ A prefix arg forces clock in of the default task."
   (setq appt-time-msg-list nil)
   (org-agenda-to-appt))
 #+END_SRC
+
+** Info
+:PROPERTIES:
+:ID:       c1d1c71e-04bb-4731-9545-fcb17b549f26
+:END:
+
 * Emacs Configuration
 ** Key binding configuration
 :PROPERTIES:
@@ -1063,10 +1089,7 @@ CLOCK: [2022-02-19 Sat 10:21]--[2022-02-19 Sat 10:22] =>  0:01
     (map! :leader "m c a" #'ein:worksheet-insert-cell-above)
     (map! :leader "m c b" #'ein:worksheet-insert-cell-below)))
 
-;; edebug
-;; (eval-after-load 'edebug-mode
-;;   (lambda ()
-;;     (map! :nvi "v" nil)))
+(map! :g "M-c" #'capitalize-dwim)
 
 #+END_SRC
 
@@ -1116,6 +1139,13 @@ CLOCK: [2022-02-19 Sat 10:21]--[2022-02-19 Sat 10:22] =>  0:01
 )
 ;; (add-to-list 'browse-url-filename-alist '("^~+" . "file:///home/awannaphasch2016"))
 #+END_SRC
+
+** man page lookup
+#+BEGIN_SRC emacs-lisp
+;; To make use of this, change the value of the variable ‘Man-switches’ to ‘"-a"’.
+(setq Man-switches "-a")
+#+END_SRC
+
 
 * Environment variables
 Should you use =exec-path-from-shell= or =doom env=? check [[https://discourse.doomemacs.org/t/why-doom-env-instead-of-exec-path-from-shell/168][here]].
@@ -1217,9 +1247,9 @@ see the basic configuration [[file:~/org/notes/emacs/packages/erc-notes.org::*Ba
 
 **** TLA+ Mode
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/manual-install/tlamode/lisp/")
-(require 'tla+-mode)
-(setq tla+-tlatools-path "~/.emacs.d/manual-install/tlamode/")
+;; (add-to-list 'load-path "~/.emacs.d/manual-install/tlamode/lisp/")
+;; (require 'tla+-mode)
+;; (setq tla+-tlatools-path "~/.emacs.d/manual-install/tlamode/")
 #+END_SRC
 **** Go Mode
 
@@ -1255,12 +1285,30 @@ Configuration for formating
                                (setq tab-width 4)))
 #+END_SRC
 **** Web Mode
+:PROPERTIES:
+:ID:       1726878b-50cd-4a40-9ad4-261ca811b441
+:END:
 #+BEGIN_SRC emacs-lisp
-(map! :leader "m e j" #'web-mode-element-sibling-next)
-(map! :leader "m e k" #'web-mode-element-sibling-previous)
+(map! :leader "m e J" #'web-mode-element-sibling-next)
+(map! :leader "m e K" #'web-mode-element-sibling-previous)
+(map! :leader "m e k" #'web-mode-element-kill)
+(set-formatter! 'html-tidy
+    '("tidy" "-q" "-indent"
+      "-f" "html-tidy-error-and-warning.txt"
+      "--tidy-mark" "no"
+      "--drop-empty-elements" "no"
+      ("--show-body-only" "%s" (if +format-region-p "true" "auto"))
+      ("--indent-spaces" "%d" tab-width)
+      ("--indent-with-tabs" "%s" (if indent-tabs-mode "yes" "no"))
+      ("-xml" (memq major-mode '(nxml-mode xml-mode))))
+    :ok-statuses '(0 1))
 (eval-after-load 'web-mode
   '(define-key web-mode-map (kbd "C-c b") 'web-beautify-html))
 #+END_SRC
+
+#+RESULTS:
+: web-beautify-html
+
 **** Lisp Mode
 
 ***** lispy
@@ -1344,12 +1392,16 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 #+BEGIN_SRC emacs-lisp
 (defun my-edebug-mode-map-hook ()
   (define-key edebug-mode-map "v" nil)
-  (define-key edebug-mode-map "t" nil))
+  (define-key edebug-mode-map "t" nil)
+  (define-key edebug-mode-map (kbd "SPC") nil))
 
  (with-eval-after-load 'edebug
    (evil-make-overriding-map edebug-mode-map '(normal motion insert))
    (add-hook 'edebug-mode-hook 'evil-normalize-keymaps)
    (add-hook 'edebug-mode-hook 'my-edebug-mode-map-hook))
+
+(map! :after edebug-mode
+      (:map edebug-mode-map (kbd "SPC") nil))
 #+END_SRC
 *** Dap Mode
 
@@ -1908,8 +1960,7 @@ For more information, see [[file:~/org/notes/emacs/emacs-note.org::*\[\[https://
 (set-fringe-style (quote (12 . 8)))
 
 ; resolve key conflict.
-;(define-key edebug-mode-map (kbd "SPC") nil)
-;(define-key global-edebug-map (kbd "SPC") nil)
+; (define-key edebug-mode-map (kbd "SPC") nil)
 #+END_SRC
 
 * Garbage colection
@@ -1952,12 +2003,9 @@ For more information, see [[file:~/org/notes/emacs/emacs-note.org::*\[\[https://
 :ID:       7df1535f-e14d-4aca-b663-b0050399d076
 :END:
 #+BEGIN_SRC emacs-lisp
-(message "====================loads Emacs-jupyter===================================")
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp
-(require 'jupyter)
-(require 'ob-jupyter)
+;; (message "====================loads Emacs-jupyter===================================")
+;; (require 'jupyter)
+;; (require 'ob-jupyter)
 #+END_SRC
 
 * Diagrams
@@ -1973,6 +2021,10 @@ For more information, see [[file:~/org/notes/emacs/emacs-note.org::*\[\[https://
 #+BEGIN_SRC emacs-lisp
 ;; (setq org-ditaa-jar-path "~/git/org-mode/contrib/scripts/ditaa.jar")
 #+END_SRC
+
+
+* restclient
+note: =restclient-mode= has to be loaded before it is used by ~org-babel-load-languages~.
 
 
 * Org Mode Related Packages
@@ -2162,7 +2214,8 @@ For more information, see [[file:~/org/notes/emacs/emacs-note.org::*\[\[https://
    (python . t)
    (julia . t)
    (ditaa . t)
-   (dot . t)))
+   (dot . t)
+   (restclient . t)))
 #+END_SRC
 
 loads library of babels
@@ -2214,31 +2267,35 @@ CLOCK: [2022-03-13 Sun 21:49]--[2022-03-13 Sun 21:50] =>  0:01
 #+END_SRC
 
 ** Org capture
+:PROPERTIES:
+:ID:       0832fb93-0459-4dd4-a335-8edea5fef0ad
+:END:
 #+BEGIN_SRC emacs-lisp
 ;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
 (setq org-capture-templates
-      (quote (("t" "todo" entry (file "~/org/refile.org")
+      (quote (("t" "todo"             entry (file "~/org/refile.org")
                "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("r" "respond" entry (file "~/org/refile.org")
+              ("r" "respond"          entry (file "~/org/refile.org")
                "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-              ("n" "note" entry (file "~/org/refile.org")
+              ("n" "note"             entry (file "~/org/refile.org")
                "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("j" "Journal" entry (file+datetree "~/org/journal.org")
+              ("j" "Journal"          entry (file+datetree "~/org/journal.org")
                "* %?\n%U\n" :clock-in t :clock-resume t)
-              ("d" "daily" entry (file+datetree "~/org/daily.org")
+              ("d" "daily"            entry (file+datetree "~/org/daily.org")
                "* %?\n%U\n" :clock-in t :clock-resume t)
-              ("w" "org-protocol" entry (file "~/org/refile.org")
+              ("w" "org-protocol"     entry (file "~/org/refile.org")
                "* TODO Review %c\n%U\n" :immediate-finish t)
-              ("l" "Learning" entry (file "~/org/refile.org")
+              ("l" "Learning"         entry (file "~/org/refile.org")
                "* LEARNING %?\n%U\n" :clock-in t :clock-resume t)
-              ("?" "Questions" entry (file "~/org/refile.org")
+              ("?" "Questions"        entry (file "~/org/refile.org")
                "* Questions %?\n%U\n" :clock-in t :clock-resume t)
-              ("m" "Meeting" entry (file "~/org/refile.org")
+              ("m" "Meeting"          entry (file "~/org/refile.org")
                "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-              ("p" "Phone call" entry (file "~/org/refile.org")
+              ("p" "Phone call"       entry (file "~/org/refile.org")
                "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-              ("h" "Habit" entry (file "~/org/refile.org")
-               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
+              ("h" "Habit"            entry (file "~/org/refile.org")
+               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n")
+              ("s" "space repetition" entry ()))))
 #+END_SRC
 
 ** Org clock
@@ -2885,10 +2942,12 @@ that."
 
 * clipboard
 ** From window clipboard to powershell clipboard
+:PROPERTIES:
+:ID:       f6b6c44b-f58d-44dc-a193-008ac58a3f73
+:END:
 
 *** version 1
 #+BEGIN_SRC emacs-lisp
-
 (defun anak/my-yank-image-from-win-clipboard-through-powershell() "to simplify the logic, use c:/Users/Public as temporary directoy, and move it into current directoy"
        (interactive)
        (let* ((powershell "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe")
@@ -2898,9 +2957,8 @@ that."
          (make-directory "images" ".")
          (shell-command (concat powershell " -command \"(Get-Clipboard -Format Image).Save(\\\"./images/" file-name "\\\")\""))
          ;; (rename-file (concat "/mnt/c/Users/Public/images/" file-name) file-path-wsl)
-         (insert (concat "[[file:" file-path-wsl "]]"))
-         (message "insert DONE.")
-         ))
+         (insert (concat "#+name: " (int-to-string (* (random 100000) (random 100000))) "\n#+attr_html: :width 500px\n" "[[file:" file-path-wsl "]]"))
+         (message "insert DONE.")))
 #+END_SRC
 *** version 2
 :PROPERTIES:
@@ -3146,15 +3204,16 @@ key binding
 :ID:       ee662cf2-862a-4913-87cf-020fe4f431b5
 :END:
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'load-path "~/.emacs.d/manual-install/org-super-links/")
-(require 'org-super-links)
-(use-package! org-super-links
-  :bind (("C-c s s" . org-super-links-link)
-	   ("C-c s l" . org-super-links-store-link)
-	   ("C-c s C-l" . org-super-links-insert-link)))
-;; (map! :leader "n l" #'org-super-links-store-link)
-;; (map! :leader "m l l" #'org-super-links-insert-link)
+;; (add-to-list 'load-path "~/.emacs.d/manual-install/org-super-links/")
+;; (require 'org-super-links)
+;; (use-package! org-super-links
+;;   :bind (("C-c s s" . org-super-links-link)
+;; 	   ("C-c s l" . org-super-links-store-link)
+;; 	   ("C-c s C-l" . org-super-links-insert-link)))
+;; ;; (map! :leader "n l" #'org-super-links-store-link)
+;; ;; (map! :leader "m l l" #'org-super-links-insert-link)
 #+END_SRC
+
 * ledger
 #+BEGIN_SRC emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.dat\\'" . ledger-mode))
@@ -3167,6 +3226,37 @@ key binding
 #+BEGIN_SRC emacs-lisp
 (require 'treemacs)
 (define-key treemacs-mode-map (kbd "M-h") 'treemacs-goto-parent-node)
+#+END_SRC
+* Magit
+#+BEGIN_SRC emacs-lisp
+(with-eval-after-load 'magit
+  (require 'forge))
+#+END_SRC
+
+* Cdlatex
+:PROPERTIES:
+:ID:       54b3568d-b51c-4d96-94e2-927241ed9ce9
+:END:
+
+#+BEGIN_SRC emacs-lisp
+(defun my-cdlatex-mode-map-hook ()
+  (define-key org-cdlatex-mode-map (kbd "`") nil))
+
+(eval-after-load 'org-cdlatex-mode
+  (add-hook 'org-cdlatex-mode-hook 'my-cdlatex-mode-map-hook))
+#+END_SRC
+* org-fc
+#+BEGIN_SRC emacs-lisp
+;; (require 'org-fc)
+;; (require 'org-fc-awk)
+#+END_SRC
+* region-occurrence-highlighter
+#+BEGIN_SRC emacs-lisp
+(global-region-occurrences-highlighter-mode)
+#+END_SRC
+
+* Emmet Mode
+#+BEGIN_SRC emacs-lisp
 #+END_SRC
 
 

@@ -4,4 +4,4 @@
 # contributor: John Kitchin <jkitchin@andrew.cmu.edu>
 # condition: (looking-back "^n" 2)
 # --
-#+name: ${1:name}$0
+#+name: ${1:`(* (random 100000) (random 100000))`}$0

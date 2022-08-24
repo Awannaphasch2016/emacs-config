@@ -1,4 +1,13 @@
-;; [[file:config.org::*Doom Default configuration][Doom Default configuration:1]]
+#+title: Configuration in Org mode
+#+PROPERTY: header-args :tangle "~/.doom.d/config.el" :comments link
+#+PROPERTY: comments org
+
+
+* Doom Default configuration
+:PROPERTIES:
+:ID:       6297faeb-ca6a-441d-acd3-6b6bdd9339e4
+:END:
+#+BEGIN_SRC emacs-lisp
 ;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
 ;;;
 ;; Place your private configuration here! Remember, you do not need to run 'doom
@@ -49,36 +58,25 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
-;; Doom Default configuration:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*My custom functions][My custom functions:1]]
+#+RESULTS:
+: relative
+
+* Customized Elisp Function
+** My custom functions
+:PROPERTIES:
+:ID:       5f8d5cce-72b3-4d05-acd8-549d295745ca
+:END:
+#+BEGIN_SRC emacs-lisp
 (defun my/anak-yank-dir-path ()
   (interactive)
   (message "Copy to clipboard: %s"
            (kill-new (s-join "/"  (butlast (split-string default-directory "/") 1)))))
+#+END_SRC
 
-;; count line in dir
-;; 1. select directory
-;; 2. recieve string as input
-;; run shell command
-;; 3. find . -name "*.py" | xargs wc -l | awk '{print $1}' | sum
-;; (defun anak/count-line-in-dir)
-
-(defun anak/toggle-scratch-buffer ()
-  (interactive)
-  (if (string-match-p "^\\*doom:scratch" (buffer-name))
-      (quit-window)
-    (doom/open-scratch-buffer)))
-
-(map! :leader "\"" 'anak/toggle-scratch-buffer)
-
-
-(defun anak/insert-random-int ()
-  (interactive)
-  (insert (int-to-string (* (random 100000) (random 10000)))))
-;; My custom functions:1 ends here
-
-;; [[file:config.org::*highlighting words and symbols][highlighting words and symbols:1]]
+** highlighting words and symbols
+#+BEGIN_SRC emacs-lisp
 ;; unhighlight all highlight that is highlighted by hi-lock
 ;; ref: https://emacs.stackexchange.com/questions/19861/how-to-unhighlight-symbol-highlighted-with-highlight-symbol-at-point
 (defun anak/unhighlight-all-in-buffer ()
@@ -86,9 +84,14 @@
 The same result can also be be achieved by \\[universal-argument] \\[unhighlight-regexp]."
   (interactive)
   (unhighlight-regexp t))
-;; highlighting words and symbols:1 ends here
+#+END_SRC
+** highlight indentation
+- ref
+  - https://raw.githubusercontent.com/antonj/Highlight-Indentation-for-Emacs/master/highlight-indentation.el
+  - https://stackoverflow.com/questions/1587972/how-to-display-indentation-guides-in-emacs/4459159
 
-;; [[file:config.org::*main highlight-indentation code][main highlight-indentation code:1]]
+*** main highlight-indentation code
+#+BEGIN_SRC emacs-lisp
 ;;; highlight-indentation.el --- Minor modes for highlighting indentation
 ;; Author: Anton Johansson <anton.johansson@gmail.com> - http://antonj.se
 ;; Created: Dec 15 23:42:04 2010
@@ -402,9 +405,9 @@ corresponding to the indentation of the current line"
 ;; (provide 'highlight-indentation)
 
 ;;; highlight-indentation.el ends here
-;; main highlight-indentation code:1 ends here
-
-;; [[file:config.org::*toggle folds based on indentation levels][toggle folds based on indentation levels:1]]
+#+END_SRC
+*** toggle folds based on indentation levels
+#+BEGIN_SRC emacs-lisp
 (defun anak/toggle-fold ()
   "Toggle fold all lines larger than indentation on current line"
   (interactive)
@@ -417,21 +420,23 @@ corresponding to the indentation of the current line"
 ;; (global-set-key [(M C i)] 'aj-toggle-fold)
 ;; (global-set-key (kbd "z a") 'anak/toggle-fold)
 (map! :n "z a" #'anak/toggle-fold)
-;; toggle folds based on indentation levels:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*insert current date][insert current date:1]]
+** insert current date
+#+BEGIN_SRC emacs-lisp
+
 ;; ref: https://www.emacswiki.org/emacs/InsertingTodaysDate
 ;; inserting todays date using shell
 (defun anak/insert-current-date ()
   (interactive)
   (insert (calendar-date-string (calendar-current-date) nil t)))
-;; insert current date:1 ends here
+#+END_SRC
+** benchmarking
+#+BEGIN_SRC emacs-lisp
 
-;; [[file:config.org::*benchmarking][benchmarking:1]]
-
-;; benchmarking:1 ends here
-
-;; [[file:config.org::*searching the most published MELPA Authors][searching the most published MELPA Authors:1]]
+#+END_SRC
+** searching the most published MELPA Authors
+#+BEGIN_SRC emacs-lisp
 ;; https://www.reddit.com/r/emacs/comments/t9qs6h/need_help_listing_all_emacs_super_developers/
 (require 'url)
 (require 'cl-lib)
@@ -466,9 +471,10 @@ corresponding to the indentation of the current line"
      (cl-sort authors #'>
               :key (lambda (cell) (length (cdr cell))))
      0 (min n (length authors)))))
-;; searching the most published MELPA Authors:1 ends here
-
-;; [[file:config.org::*Org tree slide helper][Org tree slide helper:1]]
+#+END_SRC
+** Helper function for other packages
+*** Org tree slide helper
+#+BEGIN_SRC emacs-lisp
 ;; org-tree-slide
 (defun efs/presentation-setup ()
   (setq text-scale-mode-amount 3)
@@ -477,9 +483,10 @@ corresponding to the indentation of the current line"
 
 (defun efs/presentation-end ()
   (text-scale-mode 0))
-;; Org tree slide helper:1 ends here
-
-;; [[file:config.org::*uncategorized][uncategorized:1]]
+#+END_SRC
+*** bh prefix (from norang config, see [[http://doc.norang.ca/org-mode.html][here]].)
+**** uncategorized
+#+BEGIN_SRC emacs-lisp
 (defun bh/hide-other ()
   (interactive)
   (save-excursion
@@ -508,9 +515,9 @@ corresponding to the indentation of the current line"
   (switch-to-buffer "*scratch*"))
 
 (setq bh/keep-clock-running nil)
-;; uncategorized:1 ends here
-
-;; [[file:config.org::*Defining project][Defining project:1]]
+#+END_SRC
+**** Defining project
+#+BEGIN_SRC emacs-lisp
 (defun bh/is-project-p ()
   "Any task with a todo keyword subtask"
   (save-restriction
@@ -764,9 +771,10 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
     (if (bh/is-subproject-p)
         nil
       next-headline)))
-;; Defining project:1 ends here
-
-;; [[file:config.org::*Defining task][Defining task:1]]
+#+END_SRC
+**** Defining task
+NEXT keywords are for tasks and not projects. I've added a function to the todo state change hook and clock in hook so that any parent tasks marked NEXT automagically change from NEXT to TODO since they are now projects and not tasks.
+#+BEGIN_SRC emacs-lisp
 (defun bh/mark-next-parent-tasks-todo ()
   "Visit each parent task and change NEXT states to TODO"
   (let ((mystate (or (and (fboundp 'org-state)
@@ -780,15 +788,16 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
 
 (add-hook 'org-after-todo-state-change-hook 'bh/mark-next-parent-tasks-todo 'append)
 (add-hook 'org-clock-in-hook 'bh/mark-next-parent-tasks-todo 'append)
-;; Defining task:1 ends here
-
-;; [[file:config.org::*for refiling][for refiling:1]]
+#+END_SRC
+**** for refiling
+#+BEGIN_SRC emacs-lisp
 (defun bh/verify-refile-target ()
     "Exclude todo keywords with a done state from refile targets"
     (not (member (nth 2 (org-heading-components)) org-done-keywords)))
-;; for refiling:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*for tags filtering][for tags filtering:1]]
+**** for tags filtering
+#+BEGIN_SRC emacs-lisp
 (defun bh/org-auto-exclude-function (tag)
   "Automatic task exclusion in the agenda with / RET"
   (and (cond
@@ -798,9 +807,11 @@ Skip project and sub-project tasks, habits, and loose non-project tasks."
          t))
        (concat "-" tag)))
 (setq org-agenda-auto-exclude-function 'bh/org-auto-exclude-function)
-;; for tags filtering:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*For clocking][For clocking:1]]
+**** For clocking
+9.1. clock setup
+#+BEGIN_SRC emacs-lisp
 (defun bh/clock-in-to-next (kw)
   "Switch a task from TODO to NEXT when clocking in.
 Skips capture tasks, projects, and subprojects.
@@ -915,9 +926,10 @@ A prefix arg forces clock in of the default task."
     (widen)
     (org-with-point-at clock-in-to-task
       (org-clock-in nil))))
-;; For clocking:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*For bbdb (phone call)][For bbdb (phone call):1]]
+**** For bbdb (phone call)
+#+BEGIN_SRC emacs-lisp
 ;; (require 'bbdb)
 ;; (require 'bbdb-com)
 
@@ -950,9 +962,10 @@ A prefix arg forces clock in of the default task."
 ;;                        (rec)
 ;;                        (t "NameOfCaller")))
 ;;     (insert caller)))
-;; For bbdb (phone call):1 ends here
+#+END_SRC
 
-;; [[file:config.org::*For archive][For archive:1]]
+**** For archive
+#+BEGIN_SRC emacs-lisp
 (setq org-archive-mark-done nil)
 (setq org-archive-location "%s_archive::* Archived Tasks")
 
@@ -978,17 +991,25 @@ A prefix arg forces clock in of the default task."
                   nil))  ; available to archive
             (or subtree-end (point-max)))
         next-headline))))
-;; For archive:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*For reminder][For reminder:1]]
+**** For reminder
+#+BEGIN_SRC emacs-lisp
 ; Erase all reminders and rebuilt reminders for today from the agenda
 (defun bh/org-agenda-to-appt ()
   (interactive)
   (setq appt-time-msg-list nil)
   (org-agenda-to-appt))
-;; For reminder:1 ends here
-
-;; [[file:config.org::*Key binding configuration][Key binding configuration:1]]
+#+END_SRC
+* Emacs Configuration
+** Key binding configuration
+:PROPERTIES:
+:ID:       05912e4f-86fe-4021-933a-74ee7c28ea81
+:END:
+:LOGBOOK:
+CLOCK: [2022-02-19 Sat 10:21]--[2022-02-19 Sat 10:22] =>  0:01
+:END:
+#+BEGIN_SRC emacs-lisp
 ;; url: http://doc.norang.ca/org-mode.html#GettingStarted
 ;; Custom Key Bindings
 (global-set-key (kbd "<f12>") 'org-agenda)
@@ -1042,25 +1063,35 @@ A prefix arg forces clock in of the default task."
     (map! :leader "m c a" #'ein:worksheet-insert-cell-above)
     (map! :leader "m c b" #'ein:worksheet-insert-cell-below)))
 
-(map! :g "M-c" #'capitalize-dwim)
-;; Key binding configuration:1 ends here
+;; edebug
+;; (eval-after-load 'edebug-mode
+;;   (lambda ()
+;;     (map! :nvi "v" nil)))
 
-;; [[file:config.org::*basic configuration][basic configuration:1]]
+#+END_SRC
+
+#+RESULTS:
+: treemacs-goto-parent-node
+
+** basic configuration
+#+BEGIN_SRC emacs-lisp
 (setq desktop-save-mode nil)
 ;; (desktop-save-mode 1)
 (setq load-prefer-newer t)
 (setq which-function-mode t)
 (require 'ol-info) ;; this allow one to link a page to emacs internal manual.
-;; basic configuration:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*configuration to increase ease of editing.][configuration to increase ease of editing.:1]]
+** configuration to increase ease of editing.
+#+BEGIN_SRC emacs-lisp
 ;; recommended by https://dr-knz.net/a-tour-of-emacs-as-go-editor.html
 (global-visual-line-mode 1)
 (global-hl-line-mode 1)
 (show-paren-mode 1)
-;; configuration to increase ease of editing.:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*configuration to encourage code formating syle][configuration to encourage code formating syle:1]]
+** configuration to encourage code formating syle
+#+BEGIN_SRC emacs-lisp
 ;; recommended by https://dr-knz.net/a-tour-of-emacs-as-go-editor.html
 (global-whitespace-mode 1)
 ;; see the apropos entry for whitespace-style
@@ -1084,14 +1115,13 @@ A prefix arg forces clock in of the default task."
         ; whitespace-mode says the line is too long
 )
 ;; (add-to-list 'browse-url-filename-alist '("^~+" . "file:///home/awannaphasch2016"))
-;; configuration to encourage code formating syle:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*man page lookup][man page lookup:1]]
-;; To make use of this, change the value of the variable ‘Man-switches’ to ‘"-a"’.
-(setq Man-switches "-a")
-;; man page lookup:1 ends here
-
-;; [[file:config.org::*Using exec-path-from-shell][Using exec-path-from-shell:1]]
+* Environment variables
+Should you use =exec-path-from-shell= or =doom env=? check [[https://discourse.doomemacs.org/t/why-doom-env-instead-of-exec-path-from-shell/168][here]].
+** Using exec-path-from-shell
+initialize environment variable from the shell you launched emacs from. code is obtained from [[https://github.com/purcell/exec-path-from-shell#usage][here]].
+#+BEGIN_SRC emacs-lisp
 ;; ;; If you launch Emacs as a daemon from systemd or similar, you might like to use the following snippet:
 ;; (when (daemonp)
 ;;   (exec-path-from-shell-initialize))
@@ -1099,22 +1129,35 @@ A prefix arg forces clock in of the default task."
 ;; ;; Below is used when you execute in a GUI frame on OS X and linux. This sets $MANPATH, $PATH and exec-path from your shell.
 ;; (when (memq window-system '(mac ns x))
 ;;   (exec-path-from-shell-initialize))
-;; Using exec-path-from-shell:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Python Environment][Python Environment:1]]
+** Python Environment
+#+BEGIN_SRC emacs-lisp
 ;; (setenv "WORKON_HOME" "~/anaconda3/envs/" )
 ;; (pyvenv-mode 1)
-;; Python Environment:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*simple-httpd][simple-httpd:1]]
+* Building website
+
+** simple-httpd
+#+BEGIN_SRC emacs-lisp
 (use-package! simple-httpd)
-;; simple-httpd:1 ends here
-
-;; [[file:config.org::*org-bookmark-heading][org-bookmark-heading:1]]
+#+END_SRC
+* bookmark
+** org-bookmark-heading
+#+BEGIN_SRC emacs-lisp
 (require 'org-bookmark-heading)
-;; org-bookmark-heading:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Bookmark+][Bookmark+:1]]
+** Bookmark+
+- ref
+  - [[https://www.emacswiki.org/emacs/BookmarkPlus][Instruction to install of BookmarkPlus]]
+  - [[https://github.com/quelpa/quelpa][Quelpa's Github]]
+
+At the time of writing on <2021-11-03 Wed>, the installation can be install via quelpa
+
+
+#+BEGIN_SRC emacs-lisp
 ;; (use-package bookmark+
 ;;                 :quelpa (bookmark+ :fetcher wiki
 ;;                                 :files
@@ -1127,45 +1170,61 @@ A prefix arg forces clock in of the default task."
 ;;                                     "bookmark+-doc.el"
 ;;                                     "bookmark+-chg.el"))
 ;;                 :defer 2)
-;; Bookmark+:1 ends here
 
-;; [[file:config.org::*ERC (IRC client)][ERC (IRC client):1]]
+#+END_SRC
+* ERC (IRC client)
+
+Note: I haven't have a change to carefully try whether this is working or not. (I will just have it there for now)
+
+see the basic configuration [[file:~/org/notes/emacs/packages/erc-notes.org::*Basic configuration example][here]].
+
+#+BEGIN_SRC emacs-lisp
 (setq erc-server "irc.libera.chat"
       erc-nick "Garun"
       erc-user-full-name "Anak Wannaphaschaiyong"
       erc-track-shorten-start 8 ; limit chars in mode line
       erc-autojoin-channels-alist '(("irc.libera.chat" "#systemcrafters" "#emacs")) erc-kill-buffer-on-part t
       erc-auto-query 'bury)
-;; ERC (IRC client):1 ends here
-
-;; [[file:config.org::*Emacs Tree Sitter][Emacs Tree Sitter:1]]
+#+END_SRC
+* Emacs Tree Sitter
+#+BEGIN_SRC emacs-lisp
 ;; ref: https://emacs-tree-sitter.github.io/syntax-highlighting/
 (global-tree-sitter-mode)
 ;; (add-hook 'rustic-mode-hook #'tree-sitter-hl-mode)
 ;; (add-hook 'python-mode-hook #'tree-sitter-hl-mode)
 (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode) ;; enable whenever possible
-;; Emacs Tree Sitter:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Windows][Windows:1]]
+#+RESULTS:
+| tree-sitter-hl-mode |
+
+* Windows
+#+BEGIN_SRC emacs-lisp
 (map! :leader "w a" #'ace-window)
 (map! :leader "w 0" #'+workspace/close-window-or-workspace)
 (map! :leader "w 1" #'delete-other-windows)
 (map! :leader "w r" #'winner-redo)
 (map! :leader "w f" #'find-file-other-window)
-;; Windows:1 ends here
-
-;; [[file:config.org::*Python Modes][Python Modes:1]]
+#+END_SRC
+* Emacs Modes
+** Major modes
+*** Programming Language
+**** Python Modes
+#+BEGIN_SRC emacs-lisp
 ;; (add-to-list 'exec-path "~/anaconda3/envs/py38/lib/python3.8/site-packages/") ;; may not need it
 (add-hook 'python-mode-hook 'highlight-indentation-mode)
-;; Python Modes:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*TLA+ Mode][TLA+ Mode:1]]
-;; (add-to-list 'load-path "~/.emacs.d/manual-install/tlamode/lisp/")
-;; (require 'tla+-mode)
-;; (setq tla+-tlatools-path "~/.emacs.d/manual-install/tlamode/")
-;; TLA+ Mode:1 ends here
+**** TLA+ Mode
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/manual-install/tlamode/lisp/")
+(require 'tla+-mode)
+(setq tla+-tlatools-path "~/.emacs.d/manual-install/tlamode/")
+#+END_SRC
+**** Go Mode
 
-;; [[file:config.org::*Go Mode][Go Mode:1]]
+The following code is obtained from [[http://tleyden.github.io/blog/2014/05/22/configure-emacs-as-a-go-editor-from-scratch/][Configure Emcas as a Go Editor From Scratch]].
+#+BEGIN_SRC emacs-lisp
 ;; get the PATH environment
 (defun set-exec-path-from-shell-PATH ()
   (let ((path-from-shell (replace-regexp-in-string
@@ -1177,61 +1236,60 @@ A prefix arg forces clock in of the default task."
     (setq exec-path (split-string path-from-shell path-separator))))
 
 (when window-system (set-exec-path-from-shell-PATH))
-;; Go Mode:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Go Mode][Go Mode:2]]
+set ~GOPATH~ environment variable.
+#+BEGIN_SRC emacs-lisp
 ;; (setenv "GOPATH" "/home/awannaphasch2016/org/projects/sideprojects/blockchains/go")
-;; Go Mode:2 ends here
+#+END_SRC
 
-;; [[file:config.org::*Go Mode][Go Mode:3]]
+Automatically call gofmt on save
+#+BEGIN_SRC emacs-lisp
 ;; (add-to-list 'exec-path "/usr/local/go/bin/")
 ;; (add-hook 'before-save-hook 'gofmt-before-save)
-;; Go Mode:3 ends here
+#+END_SRC
 
-;; [[file:config.org::*Go Mode][Go Mode:4]]
+Configuration for formating
+#+BEGIN_SRC emacs-lisp
 (add-hook 'go-mode-hook (lambda ()
                                (setq tab-width 4)))
-;; Go Mode:4 ends here
-
-;; [[file:config.org::*Web Mode][Web Mode:1]]
-(map! :leader "m e J" #'web-mode-element-sibling-next)
-(map! :leader "m e K" #'web-mode-element-sibling-previous)
-(map! :leader "m e k" #'web-mode-element-kill)
-(set-formatter! 'html-tidy
-    '("tidy" "-q" "-indent"
-      "-f" "html-tidy-error-and-warning.txt"
-      "--tidy-mark" "no"
-      "--drop-empty-elements" "no"
-      ("--show-body-only" "%s" (if +format-region-p "true" "auto"))
-      ("--indent-spaces" "%d" tab-width)
-      ("--indent-with-tabs" "%s" (if indent-tabs-mode "yes" "no"))
-      ("-xml" (memq major-mode '(nxml-mode xml-mode))))
-    :ok-statuses '(0 1))
+#+END_SRC
+**** Web Mode
+#+BEGIN_SRC emacs-lisp
+(map! :leader "m e j" #'web-mode-element-sibling-next)
+(map! :leader "m e k" #'web-mode-element-sibling-previous)
 (eval-after-load 'web-mode
   '(define-key web-mode-map (kbd "C-c b") 'web-beautify-html))
-;; Web Mode:1 ends here
+#+END_SRC
+**** Lisp Mode
 
-;; [[file:config.org::*lispy][lispy:1]]
+***** lispy
+#+BEGIN_SRC emacs-lisp
 ;; (use-package! lispy
 ;;     :custom
 ;;     (map! ";" #'lispy-comment)
 ;;     (map! "D" #'lispy-delete)
 ;;     (map! "y" #'lispy-new-copy))
-;; lispy:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*lispyville][lispyville:1]]
+***** lispyville
+#+BEGIN_SRC emacs-lisp
 ;; (add-hook 'emacs-lisp-mode-hook #'lispyville-mode)
-;; lispyville:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Scala Mode][Scala Mode:1]]
+**** Scala Mode
+ref: [[https://ag91.github.io/blog/2020/10/16/my-emacs-setup-for-scala-development/][My Emacs Setup for Scala Developement]]
+#+BEGIN_SRC emacs-lisp
 ;; ref: https://ag91.github.io/blog/2020/10/16/my-emacs-setup-for-scala-development/
 (use-package scala-mode
   :mode "\\.s\\(cala\\|bt\\)$"
   :config
     (load-file "~/.emacs.d/.local/straight/repos/org/lisp/ob-scala.el"))
-;; Scala Mode:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*cfn lint][cfn lint:1]]
+**** Cloudformation Mode (cfn-mode)
+***** cfn lint
+#+BEGIN_SRC emacs-lisp
 ;; Set up a mode for JSON based templates
 
 (define-derived-mode cfn-json-mode js-mode
@@ -1275,24 +1333,27 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   (add-to-list 'flycheck-checkers 'cfn-lint)
   (add-hook 'cfn-json-mode-hook 'flycheck-mode)
   (add-hook 'cfn-yaml-mode-hook 'flycheck-mode))
-;; cfn lint:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*evil mode][evil mode:1]]
+
+** Minor modes
+*** evil mode
+:PROPERTIES:
+:ID:       ee9e6af6-451b-407a-8e72-ccb803c89332
+:END:
+#+BEGIN_SRC emacs-lisp
 (defun my-edebug-mode-map-hook ()
   (define-key edebug-mode-map "v" nil)
-  (define-key edebug-mode-map "t" nil)
-  (define-key edebug-mode-map (kbd "SPC") nil))
+  (define-key edebug-mode-map "t" nil))
 
  (with-eval-after-load 'edebug
    (evil-make-overriding-map edebug-mode-map '(normal motion insert))
    (add-hook 'edebug-mode-hook 'evil-normalize-keymaps)
    (add-hook 'edebug-mode-hook 'my-edebug-mode-map-hook))
+#+END_SRC
+*** Dap Mode
 
-(map! :after edebug-mode
-      (:map edebug-mode-map (kbd "SPC") nil))
-;; evil mode:1 ends here
-
-;; [[file:config.org::*Dap Mode][Dap Mode:1]]
+#+BEGIN_SRC emacs-lisp
 ;; dap-mode
 (require 'dap-mode)
 (require 'dap-ui)
@@ -1321,9 +1382,14 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; Enabling only some features
 (setq dap-auto-configure-features '(sessions locals controls expressions tooltip))
 (setq dap-python-debugger 'debugpy)
-;; Dap Mode:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*LSP-mode][LSP-mode:1]]
+#+RESULTS:
+| sessions | locals | controls | expressions | tooltip |
+
+*** LSP-mode
+#+BEGIN_SRC emacs-lisp
+
 ;; ref: https://scalameta.org/metals/docs/editors/emacs/
 (use-package lsp-mode
   ;; Optional - enable lsp-mode automatically in scala files
@@ -1351,31 +1417,35 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; (setq lsp-disabled-clients '((python-mode . mspyls) (python-mode . pyls)))
 ;; (setq lsp-disabled-clients '((go-mode . gopls)))
 ;; (+lsp/switch-client pyls) ; this doesn't work.
-;; LSP-mode:1 ends here
 
-;; [[file:config.org::*LSP-mode][LSP-mode:2]]
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
 ;; How do I force lsp-mode to forget the workspace folders for multi root#
 ;; ref: https://emacs-lsp.github.io/lsp-mode/page/faq/#how-do-i-force-lsp-mode-to-forget-the-workspace-folders-for-multi-root
 (advice-add 'lsp
             :before (lambda (&rest _args)
                       (eval '(setf (lsp-session-server-id->folders (lsp-session))
                                    (ht)))))
-;; LSP-mode:2 ends here
+#+END_SRC
 
-;; [[file:config.org::*pyright setup][pyright setup:1]]
+**** pyright setup
+#+BEGIN_SRC emacs-lisp
 ;; ref: https://github.com/emacs-lsp/lsp-pyright
 (use-package lsp-pyright
   ;; :ensure t
   :hook (python-mode . (lambda ()
                           (require 'lsp-pyright)
                           (lsp))))  ; or lsp-deferred
-;; pyright setup:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*pylsp setup][pylsp setup:1]]
+**** pylsp setup
+#+BEGIN_SRC emacs-lisp
 (setq lsp-pylsp-plugins-flake8-enabled nil)
-;; pylsp setup:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*lsp for Go][lsp for Go:1]]
+**** lsp for Go
+#+BEGIN_SRC emacs-lisp
 ;; (add-hook 'go-mode-hook #'lsp)
 (add-hook 'go-mode-hook #'lsp-deferred)
 
@@ -1386,23 +1456,27 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;;   (add-hook 'before-save-hook #'lsp-format-buffer t t)
 ;;   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 ;; (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-;; lsp for Go:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*lsp for Go][lsp for Go:2]]
+configuraing gopls via LSP Mode.
+This is possible because stable =gopls= settings have gorresponding configuraiton variables in =lsp-mode=. for more information, see [[https://github.com/golang/tools/blob/master/gopls/doc/emacs.md#configuring-gopls-via-lsp-mode][here]].
+#+BEGIN_SRC emacs-lisp
 (lsp-register-custom-settings
  '(("gopls.completeUnimported" t t)
    ("gopls.staticcheck" t t)))
-;; lsp for Go:2 ends here
+#+END_SRC
 
-;; [[file:config.org::*lsp for Go][lsp for Go:3]]
+Add environment variable =$PATH= manually, because emacs =exec-path= doesn't pick up on it. rReally not sure why this is the case?
+#+BEGIN_SRC emacs-lisp
 ;; (add-to-list 'exec-path "/usr/local/go/bin")
 ;; (add-to-list 'exec-path "/usr/local/go/bin/go")
 ;; (add-to-list 'exec-path "/home/awannaphasch2016/go/bin")
 ;; (add-to-list 'exec-path "/home/awannaphasch2016/go/bin/go")
 ;; (add-to-list 'exec-path "/home/awannaphasch2016/go/bin/gopls")
-;; lsp for Go:3 ends here
+#+END_SRC
 
-;; [[file:config.org::*lsp for scala][lsp for scala:1]]
+**** lsp for scala
+#+BEGIN_SRC emacs-lisp
 (use-package! lsp-metals
   ;; :custom
   ;; ;; Metals claims to support range formatting by default but it supports range
@@ -1410,9 +1484,10 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   ;; ;; emacs can use indentation provided by scala-mode.
   ;; (lsp-metals-server-args '("-J-Dmetals.allow-multiline-string-formatting=off"))
   :hook (scala-mode . lsp))
-;; lsp for scala:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*lsp for C language family][lsp for C language family:1]]
+**** lsp for C language family
+#+BEGIN_SRC emacs-lisp
 ;; config is taken from ~/.emacs.d/modules/lang/cc/README.org
 (setq lsp-clients-clangd-args '("-j=3"
                                 "--background-index"
@@ -1421,41 +1496,54 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
                                 "--header-insertion=never"
                                 "--header-insertion-decorators=0"))
 (after! lsp-clangd (set-lsp-priority! 'clangd 2))
-;; lsp for C language family:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*evil-paredit][evil-paredit:1]]
+*** paredit
+**** evil-paredit
+#+BEGIN_SRC emacs-lisp
 ;; (add-hook 'emacs-lisp-mode-hook 'evil-paredit-mode)
-;; evil-paredit:1 ends here
-
-;; [[file:config.org::*paredit-everywhere][paredit-everywhere:1]]
+#+END_SRC
+**** paredit-everywhere
+#+BEGIN_SRC emacs-lisp
 ;; (add-hook 'prog-mode-hook 'paredit-everywhere-mode)
-;; paredit-everywhere:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Semantic mode][Semantic mode:1]]
+*** Semantic mode
+#+BEGIN_SRC emacs-lisp
 ;; (advice-add 'semantic-idle-scheduler-function :around #'ignore) ;; keep it uncomment  I never use it, but put it here for context.
-;; Semantic mode:1 ends here
-
-;; [[file:config.org::*Semantic Stickyfunc mode][Semantic Stickyfunc mode:1]]
+#+END_SRC
+**** Semantic Stickyfunc mode
+For more information, see [[file:~/org/notes/emacs/emacs-note.org::*\[\[https://www.gnu.org/software/emacs/manual/html_node/semantic/Sticky-Func-Mode.html\]\[Sticky Function Mode\]\]][here]].
+#+BEGIN_SRC emacs-lisp
 ;; ref: https://emacs.stackexchange.com/questions/3145/display-the-beginning-of-a-scope-when-it-is-out-of-screen
 ;; (add-to-list 'semantic-default-submodes 'global-semantic-stickyfunc-mode)
 ;; (semantic-mode 1)
 ;; (require 'stickyfunc-enhance)
-;; Semantic Stickyfunc mode:1 ends here
-
-;; [[file:config.org::*format-all][format-all:1]]
+#+END_SRC
+*** format-all
+#+BEGIN_SRC emacs-lisp
 (setq +format-on-save-enabled-modes '(not emacs-lisp-mode sql-mode tex-mode latex-mode org-msg-edit-mode python-mode))
-;; format-all:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*flycheck][flycheck:1]]
+*** flycheck
+:PROPERTIES:
+:ID:       8a672d79-8564-4637-b3e2-5947dada7c95
+:END:
+#+BEGIN_SRC emacs-lisp
 ;; (setq flycheck-global-modes '(not python-mode))
-;; flycheck:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Helm][Helm:1]]
+* Completion
+** Helm
+#+BEGIN_SRC emacs-lisp
 ;; conduct search on symbol (it can be used in complementary to M-x consult-imenu. They suppose to do the same thing, but differ in few important aspect.)
 (map! :leader "s h" #'helm-semantic-or-imenu)
-;; Helm:1 ends here
-
-;; [[file:config.org::*Helm Bibtex][Helm Bibtex:1]]
+#+END_SRC
+*** Helm Bibtex
+:PROPERTIES:
+:ID:       ff4d5491-bbfa-41e1-8730-3f39d8fb85ba
+:END:
+#+BEGIN_SRC emacs-lisp
 ;; ;; helm-bibtex url: https://rgoswami.me/posts/org-note-workflow/#indexing-notes
   (setq
    bibtex-completion-library-path "/home/awannaphasch2016/org/papers"
@@ -1476,15 +1564,23 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   ":Custom_ID: ${=key=}\n"
   ":END:\n\n"
   ))
-;; Helm Bibtex:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*citar][citar:1]]
+#+RESULTS:
+: file
+
+** citar
+#+BEGIN_SRC emacs-lisp
 (setq citar-bibliography '("/home/awannaphasch2016/org/papers/zotero-bib.bib"))
 (setq citar-library-paths '("/home/awannaphasch2016/org/papers/"))
 (setq citar-notes-paths '("/home/awannaphasch2016/org/org-roam/"))
-;; citar:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Dap Mode =debug.el= Configuration][Dap Mode =debug.el= Configuration:1]]
+
+* Dap Mode =debug.el= Configuration
+
+#+BEGIN_SRC emacs-lisp :noeval
+
 (dap-register-debug-template
   "Python :: Run file (preprocess expert labels)"
   (list :type "python"
@@ -1805,16 +1901,19 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
         :cwd "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/"
         ;; :program "/mnt/c/Users/terng/OneDrive/Documents/Working/tgn/scripts/retrieve_data_from_link_prediction.py"
         :request "launch"))
-;; Dap Mode =debug.el= Configuration:1 ends here
 
-;; [[file:config.org::*Edebug][Edebug:1]]
+#+END_SRC
+* Edebug
+#+BEGIN_SRC emacs-lisp
 (set-fringe-style (quote (12 . 8)))
 
 ; resolve key conflict.
-; (define-key edebug-mode-map (kbd "SPC") nil)
-;; Edebug:1 ends here
+;(define-key edebug-mode-map (kbd "SPC") nil)
+;(define-key global-edebug-map (kbd "SPC") nil)
+#+END_SRC
 
-;; [[file:config.org::*Garbage colection][Garbage colection:1]]
+* Garbage colection
+#+BEGIN_SRC emacs-lisp
 ;; ref: https://akrl.sdf.org/
 (setq gc-cons-threshold #x40000000)
 
@@ -1830,41 +1929,55 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;;                        ;; (lambda () (message "Garbage Collector has run for %.0bfsec"
 ;;                        ;;                     (k-time (garbage-collect))))
 ;;                        (lambda () (k-time (garbage-collect)))))
-;; Garbage colection:1 ends here
 
-;; [[file:config.org::*Startup time Optimization][Startup time Optimization:1]]
+#+END_SRC
+
+* Startup time Optimization
+#+BEGIN_SRC emacs-lisp
 (defun anak/display-startup-time ()
   (message "Emacs loaded in %s with %d garbage collections"
            (format "%s seconds" (float-time (time-subtract after-init-time before-init-time)))
            gcs-done))
 
 (add-hook 'emacs-startup-hook #'anak/display-startup-time)
-;; Startup time Optimization:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Ein][Ein:1]]
+* Ein
+#+BEGIN_SRC emacs-lisp
 ; (message "====================loads ein===================================")
-;; Ein:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Emacs-Jupyter][Emacs-Jupyter:1]]
-;; (message "====================loads Emacs-jupyter===================================")
-;; (require 'jupyter)
-;; (require 'ob-jupyter)
-;; Emacs-Jupyter:1 ends here
+* Emacs-Jupyter
+:PROPERTIES:
+:ID:       7df1535f-e14d-4aca-b663-b0050399d076
+:END:
+#+BEGIN_SRC emacs-lisp
+(message "====================loads Emacs-jupyter===================================")
+#+END_SRC
 
-;; [[file:config.org::*Diagrams][Diagrams:1]]
+#+BEGIN_SRC emacs-lisp
+(require 'jupyter)
+(require 'ob-jupyter)
+#+END_SRC
+
+* Diagrams
+#+BEGIN_SRC emacs-lisp
 (message "====================loads Diagrams===================================")
-;; Diagrams:1 ends here
-
-;; [[file:config.org::*mermaid][mermaid:1]]
+#+END_SRC
+** mermaid
+#+BEGIN_SRC emacs-lisp
 ;; (setq ob-mermaid-cli-path "/usr/local/bin/mmdc")
 (add-to-list 'auto-mode-alist '("\\.mermaid\\'" . mermaid-mode))
-;; mermaid:1 ends here
-
-;; [[file:config.org::*ditaa][ditaa:1]]
+#+END_SRC
+** ditaa
+#+BEGIN_SRC emacs-lisp
 ;; (setq org-ditaa-jar-path "~/git/org-mode/contrib/scripts/ditaa.jar")
-;; ditaa:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org Mode][Org Mode:1]]
+
+* Org Mode Related Packages
+** Org Mode
+#+BEGIN_SRC emacs-lisp
 (message "====================loads Org Mode===================================")
 ;; (add-to-list 'org-modules 'org-habit)
 
@@ -1909,15 +2022,18 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 (setq org-log-done (quote time))
 (setq org-log-into-drawer t)
 (setq org-log-state-notes-insert-after-drawers nil)
-;; Org Mode:1 ends here
-
-;; [[file:config.org::*Org bullets][Org bullets:1]]
+#+END_SRC
+** Org bullets
+#+BEGIN_SRC emacs-lisp
 (message "====================loads Org Bullets===================================")
 (require 'org-bullets)
 (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-;; Org bullets:1 ends here
-
-;; [[file:config.org::*Org ref][Org ref:1]]
+#+END_SRC
+** Org ref
+:PROPERTIES:
+:ID:       8765ad93-ccec-44de-a8b3-7e4b4407e8e5
+:END:
+#+BEGIN_SRC emacs-lisp
 ;; org-ref
 ;; (setq
 ;;          org-ref-completion-library 'org-ref-ivy-cite
@@ -1931,9 +2047,9 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;;          org-ref-notes-directory "/home/awannaphasch2016/org/"
 ;;          org-ref-notes-function 'orb-edit-notes
 ;;     )
-;; Org ref:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org ref][Org ref:2]]
+#+BEGIN_SRC emacs-lisp
 ;; (setq org-ref-open-pdf-function 'my/org-ref-open-pdf-at-point)
 
 ;; (defun my/org-ref-open-pdf-at-point ()
@@ -1964,9 +2080,13 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;;       ((file-exists-p pdf-other)
 ;;        (funcall helm-bibtex-pdf-open-function pdf-other))
 ;;       (message "No PDF found for %s" key))))
-;; Org ref:2 ends here
 
-;; [[file:config.org::*Org roam][Org roam:1]]
+#+END_SRC
+** Org roam
+:PROPERTIES:
+:ID:       2434bcaa-1aac-4c8c-a58b-c768d33571fc
+:END:
+#+BEGIN_SRC emacs-lisp
 (setq org-roam-v2-ack t)
 (setq org-roam-complete-everywhere t)
 
@@ -1996,14 +2116,18 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
                ;; (window-width . 0.33)
                ;; (window-height . fit-window-to-buffer)
                ))
-;; Org roam:1 ends here
 
-;; [[file:config.org::*Org Notes and PDF Tools][Org Notes and PDF Tools:1]]
+#+END_SRC
+
+
+** Org Notes and PDF Tools
+#+BEGIN_SRC emacs-lisp
 ;; set pdf-view-mode as default
 (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
-;; Org Notes and PDF Tools:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org Noter][Org Noter:1]]
+** Org Noter
+#+BEGIN_SRC emacs-lisp
 (message "====================loads Org-Noter===================================")
 ;; line below cause: Error in private config: config.el, (error pdf-info-epdfinfo-program is not executable)
 ;; ref: https://rgoswami.me/posts/org-note-workflow/#indexing-notes
@@ -2021,13 +2145,14 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;;    org-noter-notes-search-path (list org_notes))
 ;;    (require 'org-noter-pdftools)
 ;;   )
-;; Org Noter:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org babel][Org babel:1]]
+** Org babel
+#+BEGIN_SRC emacs-lisp
 (message "====================loads Org-Babel===================================")
-;; Org babel:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org babel][Org babel:2]]
+#+BEGIN_SRC emacs-lisp
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((ipython . t)
@@ -2037,15 +2162,15 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
    (python . t)
    (julia . t)
    (ditaa . t)
-   (dot . t)
-   (restclient . t)))
-;; Org babel:2 ends here
+   (dot . t)))
+#+END_SRC
 
-;; [[file:config.org::*Org babel][Org babel:3]]
+loads library of babels
+#+BEGIN_SRC emacs-lisp
 (org-babel-lob-ingest "~/org/org-babel-library/library-of-babel.org")
-;; Org babel:3 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org babel][Org babel:4]]
+#+BEGIN_SRC emacs-lisp
 ;; set up recommended by John Kitchin
 ;; ref: https://www.youtube.com/watch?v=RD0o2pkJBaI&t=638s&ab_channel=JohnKitchin
 (setq org-babel-default-header-args '((:session . "jupyter-python")
@@ -2058,16 +2183,23 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
                                       (:eval . "never-export")
                                       (:kernel . "python3")
                                       (:pandoc . "t")))
-;; Org babel:4 ends here
-
-;; [[file:config.org::*Org roam protocol][Org roam protocol:1]]
+#+END_SRC
+** Org roam protocol
+#+BEGIN_SRC emacs-lisp
 ;; Since the org module lazy loads org-protocol (waits until an org URL is
 ;; detected), we can safely chain `org-roam-protocol' to it.
 (use-package! org-roam-protocol
   :after org-protocol)
-;; Org roam protocol:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org roam bibtex][Org roam bibtex:1]]
+** Org roam bibtex
+:PROPERTIES:
+:ID:       70fb9a51-cf66-4ad5-92ee-7643f105605f
+:END:
+:LOGBOOK:
+CLOCK: [2022-03-13 Sun 21:49]--[2022-03-13 Sun 21:50] =>  0:01
+:END:
+#+BEGIN_SRC emacs-lisp
 ;; org-roam-bibtex
 (require 'org-roam-bibtex)
 ;; (setq orb-preformat-keywords '("citekey" "author" "date" "title" "url" "file" "author-or-editor" "keywords"))
@@ -2079,37 +2211,38 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
         ("d" "default" plain "%?" :target
          (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
          :unnarrowed t)))
-;; Org roam bibtex:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org capture][Org capture:1]]
+** Org capture
+#+BEGIN_SRC emacs-lisp
 ;; Capture templates for: TODO tasks, Notes, appointments, phone calls, meetings, and org-protocol
 (setq org-capture-templates
-      (quote (("t" "todo"             entry (file "~/org/refile.org")
+      (quote (("t" "todo" entry (file "~/org/refile.org")
                "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("r" "respond"          entry (file "~/org/refile.org")
+              ("r" "respond" entry (file "~/org/refile.org")
                "* NEXT Respond to %:from on %:subject\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t :immediate-finish t)
-              ("n" "note"             entry (file "~/org/refile.org")
+              ("n" "note" entry (file "~/org/refile.org")
                "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-              ("j" "Journal"          entry (file+datetree "~/org/journal.org")
+              ("j" "Journal" entry (file+datetree "~/org/journal.org")
                "* %?\n%U\n" :clock-in t :clock-resume t)
-              ("d" "daily"            entry (file+datetree "~/org/daily.org")
+              ("d" "daily" entry (file+datetree "~/org/daily.org")
                "* %?\n%U\n" :clock-in t :clock-resume t)
-              ("w" "org-protocol"     entry (file "~/org/refile.org")
+              ("w" "org-protocol" entry (file "~/org/refile.org")
                "* TODO Review %c\n%U\n" :immediate-finish t)
-              ("l" "Learning"         entry (file "~/org/refile.org")
+              ("l" "Learning" entry (file "~/org/refile.org")
                "* LEARNING %?\n%U\n" :clock-in t :clock-resume t)
-              ("?" "Questions"        entry (file "~/org/refile.org")
+              ("?" "Questions" entry (file "~/org/refile.org")
                "* Questions %?\n%U\n" :clock-in t :clock-resume t)
-              ("m" "Meeting"          entry (file "~/org/refile.org")
+              ("m" "Meeting" entry (file "~/org/refile.org")
                "* MEETING with %? :MEETING:\n%U" :clock-in t :clock-resume t)
-              ("p" "Phone call"       entry (file "~/org/refile.org")
+              ("p" "Phone call" entry (file "~/org/refile.org")
                "* PHONE %? :PHONE:\n%U" :clock-in t :clock-resume t)
-              ("h" "Habit"            entry (file "~/org/refile.org")
-               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n")
-              ("s" "space repetition" entry ()))))
-;; Org capture:1 ends here
+              ("h" "Habit" entry (file "~/org/refile.org")
+               "* NEXT %?\n%U\n%a\nSCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n:PROPERTIES:\n:STYLE: habit\n:REPEAT_TO_STATE: NEXT\n:END:\n"))))
+#+END_SRC
 
-;; [[file:config.org::*Org clock][Org clock:1]]
+** Org clock
+#+BEGIN_SRC emacs-lisp
 ;; clockin setup url:http://doc.norang.ca/org-mode.html
 ;; Resume clocking task when emacs is restarted
 (org-clock-persistence-insinuate)
@@ -2142,9 +2275,16 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
               :min-duration 0
               :max-gap 0
               :gap-ok-around ("4:00"))))
-;; Org clock:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*base config setting][base config setting:1]]
+#+RESULTS:
+: t
+** Org Agenda
+:PROPERTIES:
+:EFFORT:   0:30
+:END:
+*** base config setting
+#+BEGIN_SRC emacs-lisp
 ;; evil mode disable in agenda mode
 ;; (setq evil-emacs-state-modes 'org-agenda-mode)
 
@@ -2193,9 +2333,18 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; ref: http://doc.norang.ca/org-mode.html
 (setq org-deadline-warning-days 30)
 (setq org-enforce-todo-dependencies t)
-;; base config setting:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*5.1 TODO keywords][5.1 TODO keywords:1]]
+#+RESULTS:
+: t
+: t
+: t
+
+*** Todo configuration
+- ref
+  - http://doc.norang.ca/org-mode.html
+**** 5.1 TODO keywords
+#+BEGIN_SRC emacs-lisp
 ;; org-todo
 ;; note: special markers ‘!’ (for a timestamp) or ‘@’ (for a note with timestamp) in parentheses after each keyword.
 (setq org-todo-keywords
@@ -2211,13 +2360,39 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
               ("CANCELLED" :foreground "forest green" :weight bold)
               ("MEETING" :foreground "forest green" :weight bold)
               ("PHONE" :foreground "forest green" :weight bold))))
-;; 5.1 TODO keywords:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*5.2 Fast Todo Selection][5.2 Fast Todo Selection:1]]
+#+RESULTS:
+| TODO      | :foreground | red          | :weight | bold |
+| NEXT      | :foreground | blue         | :weight | bold |
+| DONE      | :foreground | forest green | :weight | bold |
+| WAITING   | :foreground | orange       | :weight | bold |
+| HOLD      | :foreground | magenta      | :weight | bold |
+| CANCELLED | :foreground | forest green | :weight | bold |
+| MEETING   | :foreground | forest green | :weight | bold |
+| PHONE     | :foreground | forest green | :weight | bold |
+
+**** 5.2 Fast Todo Selection
+#+BEGIN_SRC emacs-lisp
+
 (setq org-treat-S-cursor-todo-selection-as-state-change nil)
-;; 5.2 Fast Todo Selection:1 ends here
 
-;; [[file:config.org::*5.3 Todo state triggers][5.3 Todo state triggers:1]]
+#+END_SRC
+
+**** 5.3 Todo state triggers
+I have a few triggers that automatically assign tags to tasks based on state changes. If a task moves to CANCELLED
+state then it gets a CANCELLED tag. Moving a CANCELLED task back to TODO removes the CANCELLED tag. These are used for
+filtering tasks in agenda views which I'll talk about later.
+The triggers break down to the following rules:
+- Moving a task to CANCELLED adds a CANCELLED tag
+- Moving a task to WAITING adds a WAITING tag
+- Moving a task to HOLD adds WAITING and HOLD tags
+- Moving a task to a done state removes WAITING and HOLD tags
+- Moving a task to TODO removes WAITING, CANCELLED, and HOLD tags
+- Moving a task to NEXT removes WAITING, CANCELLED, and HOLD tags
+- Moving a task to DONE removes WAITING, CANCELLED, and HOLD tags
+
+#+BEGIN_SRC emacs-lisp
 (setq org-todo-state-tags-triggers
       (quote (("CANCELLED" ("CANCELLED" . t))
               ("WAITING" ("WAITING" . t))
@@ -2227,9 +2402,10 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
               ("TODO" ("WAITING") ("CANCELLED") ("HOLD"))
               ("NEXT" ("WAITING") ("CANCELLED") ("HOLD"))
               ("DONE" ("WAITING") ("CANCELLED") ("HOLD")))))
-;; 5.3 Todo state triggers:1 ends here
+#+END_SRC
+*** Refiling
 
-;; [[file:config.org::*Refiling][Refiling:1]]
+#+BEGIN_SRC emacs-lisp
 ;; ref: http://doc.norang.ca/org-mode.html
 
 ; Targets include this file and any file contributing to the agenda - up to 9 levels deep
@@ -2256,9 +2432,10 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;;;; Refile settings
 ; Exclude DONE state tasks from refile targets
 (setq org-refile-target-verify-function 'bh/verify-refile-target)
-;; Refiling:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Custom Agenda Views][Custom Agenda Views:1]]
+*** Custom Agenda Views
+#+BEGIN_SRC emacs-lisp
 ;; ref: http://doc.norang.ca/org-mode.html
 
 ;; Do not dim blocked tasks
@@ -2340,9 +2517,9 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
                        (org-agenda-skip-function 'bh/skip-non-archivable-tasks)
                        (org-tags-match-list-sublevels nil))))
                nil))))
-;; Custom Agenda Views:1 ends here
-
-;; [[file:config.org::*Report block][Report block:1]]
+#+END_SRC
+*** Report block
+#+BEGIN_SRC emacs-lisp
 ;; Agenda clock report parameters
 (setq org-agenda-clockreport-parameter-plist
       (quote (:link t :maxlevel 5 :fileskip0 t :compact t :narrow 80)))
@@ -2356,9 +2533,9 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 ;; Agenda log mode items to display (closed and state changes by default)
 (setq org-agenda-log-mode-items (quote (closed state)))
-;; Report block:1 ends here
-
-;; [[file:config.org::*Reminder][Reminder:1]]
+#+END_SRC
+*** Reminder
+#+BEGIN_SRC emacs-lisp
 ; Rebuild the reminders everytime the agenda is displayed
 (add-hook 'org-agenda-finalize-hook 'bh/org-agenda-to-appt 'append)
 
@@ -2370,13 +2547,18 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 
 ; If we leave Emacs running overnight - reset the appointments one minute after midnight
 (run-at-time "24:01" nil 'bh/org-agenda-to-appt)
-;; Reminder:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org drill][Org drill:1]]
+** Org Column
+:PROPERTIES:
+:EFFORT:   0:30
+:END:
+** Org drill
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'load-path "~/org/space-repetition/")
-;; Org drill:1 ends here
-
-;; [[file:config.org::*Org tree slide][Org tree slide:1]]
+#+END_SRC
+** Org tree slide
+#+BEGIN_SRC emacs-lisp
 (use-package! org-tree-slide
   :hook ((org-tree-slide-play . efs/presentation-setup)
          (org-tree-slide-stop . efs/presentation-end))
@@ -2387,25 +2569,33 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
   (org-tree-slide-header t)
   (org-tree-slide-breadcrumbs " // ")
   (org-image-actual-width nil))
-;; Org tree slide:1 ends here
-
-;; [[file:config.org::*Org habit][Org habit:1]]
+#+END_SRC
+** Org habit
+#+BEGIN_SRC emacs-lisp
 (require 'org-habit)
-;; Org habit:1 ends here
-
-;; [[file:config.org::*Org checklist][Org checklist:1]]
+#+END_SRC
+** Org checklist
+#+BEGIN_SRC emacs-lisp
 (require 'org-checklist)
-;; Org checklist:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org fragtog][Org fragtog:1]]
+** Org fragtog
+:PROPERTIES:
+:ID:       c41b7bbc-ccd4-43bc-960f-8988cd19bd95
+:END:
+Automatically toggle org mode LaTex Fragment previews as the cursor enter and exists them
+#+BEGIN_SRC emacs-lisp
 (add-hook 'org-mode-hook 'org-fragtog-mode)
-;; Org fragtog:1 ends here
-
-;; [[file:config.org::*Org sticky header][Org sticky header:1]]
+#+END_SRC
+** Org sticky header
+#+BEGIN_SRC emacs-lisp
 (add-hook 'org-mode-hook 'org-sticky-header-mode)
-;; Org sticky header:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Org brain][Org brain:1]]
+** Org brain
+In the perfect world, org-brain should be used with org-roam. org-brain and org-roam are not working quite well togetehr right now so I will have to stick with org roam
+
+#+BEGIN_SRC emacs-lisp
 ;; ;; https://github.com/Kungsgeten/org-brain
 ;; (require 'org-brain)
 ;; (setq org-brain-path "~/org/brain/")
@@ -2424,21 +2614,31 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; (setq org-brain-title-max-length 12)
 ;; (setq org-brain-include-file-entries nil
 ;;       org-brain-file-entries-use-title nil)
-;; Org brain:1 ends here
 
-;; [[file:config.org::*Polymode][Polymode:1]]
+#+END_SRC
+
+
+* Polymode
+#+BEGIN_SRC emacs-lisp
 ;; (add-hook 'org-brain-visualize-mode-hook #'org-brain-polymode)
-;; Polymode:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Ace jump][Ace jump:1]]
+#+RESULTS:
+| org-brain-polymode |
 
-;; Ace jump:1 ends here
+* Naviagation Packages
+** Ace jump
+#+BEGIN_SRC emacs-lisp
 
-;; [[file:config.org::*Avy][Avy:1]]
+#+END_SRC
+** Avy
+#+BEGIN_SRC emacs-lisp
 
-;; Avy:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*elfeed][elfeed:1]]
+* RSS Packges
+** elfeed
+#+BEGIN_SRC emacs-lisp
 (setq rmh-elfeed-org-files '("~/org/elfeed.org"))
 (setq elfeed-goodies/entry-pane-size 0.50)
 
@@ -2485,9 +2685,14 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;;                      ("https://cointelegraph.com/rss" blockchain DeFi)
 ;;                      ("https://www.reddit.com/logseq.rss" logseq PKM )
 ;;                      )))
-;; elfeed:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*mu4e][mu4e:1]]
+#+RESULTS:
+: elfeed
+
+* Emails Packages
+** mu4e
+#+BEGIN_SRC emacs-lisp
 ;; ; make sure emacs finds applications in /usr/local/bin
 ;; (setq exec-path (cons "/usr/local/bin" exec-path))
 
@@ -2517,32 +2722,38 @@ See `https://github.com/aws-cloudformation/cfn-python-lint'."
 ;; ; tell msmtp to choose the SMTP server according to the from field in the outgoing email
 ;; (setq message-sendmail-extra-arguments '("--read-envelope-from"))
 ;; (setq message-sendmail-f-is-evil 't)
-;; mu4e:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*ox extra][ox extra:1]]
+#+RESULTS:
+
+* ox extra
+#+BEGIN_SRC emacs-lisp
 (after! org
   (use-package! ox-extra
     :config
     (ox-extras-activate '(latex-header-blocks ignore-headlines))))
-;; ox extra:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*ox reveal][ox reveal:1]]
+* ox reveal
+#+BEGIN_SRC emacs-lisp
 (require 'ox-reveal)
-;; ox reveal:1 ends here
-
-;; [[file:config.org::*leetcode][leetcode:1]]
+#+END_SRC
+* leetcode
+#+BEGIN_SRC emacs-lisp
 (setq leetcode-prefer-language "python3")
 (setq leetcode-save-solutions t)
 (setq leetcode-directory "~/leetcode")
-;; leetcode:1 ends here
-
-;; [[file:config.org::*Default Text Mode][Default Text Mode:1]]
+#+END_SRC
+* Default Text Mode
+#+BEGIN_SRC emacs-lisp
 ;; (require 'default-text-scale)
 
 ;; (default-text-scale-increment (- default-text-scale-amount))
-;; Default Text Mode:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*ox-hugo][ox-hugo:1]]
+* Export (aka ox)
+** ox-hugo
+#+BEGIN_SRC emacs-lisp
 (require 'ox-hugo)
 
 ;; org-ref citation
@@ -2561,13 +2772,15 @@ that."
       (when (org-export-derived-backend-p backend 'html)
         (org-ref-process-buffer 'html)))
     (add-to-list 'org-export-before-parsing-hook #'my/org-ref-process-buffer--html)))
-;; ox-hugo:1 ends here
-
-;; [[file:config.org::*multi-term][multi-term:1]]
+#+END_SRC
+* Terminal
+** multi-term
+#+BEGIN_SRC emacs-lisp
 (setq multi-term-program "/bin/zsh")
-;; multi-term:1 ends here
-
-;; [[file:config.org::*basic config][basic config:1]]
+#+END_SRC
+* Latex
+** basic config
+#+BEGIN_SRC emacs-lisp
 (after! org
   ;; Import ox-latex to get org-latex-classes and other funcitonality
   ;; for exporting to LaTeX from org
@@ -2591,13 +2804,14 @@ that."
 
     (unless (boundp 'org-latex-classes)
       (setq org-latex-classes nil))))
-;; basic config:1 ends here
-
-;; [[file:config.org::*Doom specific config][Doom specific config:1]]
+#+END_SRC
+** Doom specific config
+#+BEGIN_SRC emacs-lisp
 ;; (setq reftex-default-bibliography "/your/bib/file.bib")
-;; Doom specific config:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*templates][templates:1]]
+** templates
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'org-latex-classes
              '("altacv" "\\documentclass[10pt,a4paper,ragged2e,withhyper]{altacv}
 
@@ -2664,9 +2878,17 @@ that."
                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-;; templates:1 ends here
 
-;; [[file:config.org::*version 1][version 1:1]]
+#+END_SRC
+
+* Org download
+
+* clipboard
+** From window clipboard to powershell clipboard
+
+*** version 1
+#+BEGIN_SRC emacs-lisp
+
 (defun anak/my-yank-image-from-win-clipboard-through-powershell() "to simplify the logic, use c:/Users/Public as temporary directoy, and move it into current directoy"
        (interactive)
        (let* ((powershell "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe")
@@ -2676,11 +2898,15 @@ that."
          (make-directory "images" ".")
          (shell-command (concat powershell " -command \"(Get-Clipboard -Format Image).Save(\\\"./images/" file-name "\\\")\""))
          ;; (rename-file (concat "/mnt/c/Users/Public/images/" file-name) file-path-wsl)
-         (insert (concat "#+name: " (int-to-string (* (random 100000) (random 100000))) "\n#+attr_html: :width 500px\n" "[[file:" file-path-wsl "]]"))
-         (message "insert DONE.")))
-;; version 1:1 ends here
-
-;; [[file:config.org::*version 2][version 2:1]]
+         (insert (concat "[[file:" file-path-wsl "]]"))
+         (message "insert DONE.")
+         ))
+#+END_SRC
+*** version 2
+:PROPERTIES:
+:ID:       f622af44-7f50-427f-9a80-5af9e1ba3d53
+:END:
+#+BEGIN_SRC emacs-lisp
 ;; ;; ref:  https://alexrampp.de/2020/11/07/how-to-paste-images-into-emacs-org-mode-running-in-windows-subsystem-for-linux/
 ;; (defun my-org-paste-image ()
 ;;   "Paste an image into a time stamped unique-named file in the
@@ -2720,9 +2946,10 @@ that."
 ;;   "executes the given script within a powershell and returns its return value"
 ;;   (call-process "powershell.exe" nil nil nil
 ;;                 "-Command" (concat "& {" script "}")))
-;; version 2:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Compile command][Compile command:1]]
+* Compile command
+#+BEGIN_SRC emacs-lisp
 ;; (add-hook 'LaTeX-mode-hook
 ;;           (lambda ()
 ;;             (set (make-local-variable 'compile-command)
@@ -2741,30 +2968,37 @@ that."
 
 (add-hook 'rjsx-mode-hook
           'set-compile-command-default-in-rjsx-mode)
-;; Compile command:1 ends here
-
-;; [[file:config.org::*Common Lisp][Common Lisp:1]]
+#+END_SRC
+* Common Lisp
+#+BEGIN_SRC emacs-lisp
 (setq inferior-lisp-program "sbcl")
-;; Common Lisp:1 ends here
-
-;; [[file:config.org::*Scimax][Scimax:1]]
+#+END_SRC
+* Scimax
+#+BEGIN_SRC emacs-lisp
 ;; (load-file "~/Downloads/scimax/init.el")
-;; Scimax:1 ends here
-
-;; [[file:config.org::*scimax-jupyter][scimax-jupyter:1]]
+#+END_SRC
+** scimax-jupyter
+#+BEGIN_SRC emacs-lisp
 ;; (load-file "~/Downloads/scimax/scimax-ob.el")
 ;; (load-file "~/Downloads/scimax/scimax-jupyter.el")
 ;; (scimax-jupyter-advise)
-;; scimax-jupyter:1 ends here
+#+END_SRC
+* stack exchage (sx.el)
+:PROPERTIES:
+:ID:       b87d8f37-6d94-4775-9774-c5902de46572
+:END:
+Disable evil mode.
 
-;; [[file:config.org::*stack exchage (sx.el)][stack exchage (sx.el):1]]
+Basically, I am done with evil mode mostly. The idea is great, but less known emacs package usually don't support evil mode. sucks, but that's reality.
+#+BEGIN_SRC emacs-lisp
 ;; (add-hook 'sx-question-mode-hook (lambda () (turn-off-evil-mode))) ;; work
 ;; (add-hook 'sx-question-list-mode-hook #'turn-off-evil-mode) ;; doesn't work. not sure why.
 (set-evil-initial-state! 'sx-question-list-mode 'emacs)
 (set-evil-initial-state! 'sx-question-mode 'emacs)
-;; stack exchage (sx.el):1 ends here
+#+END_SRC
 
-;; [[file:config.org::*stack exchage (sx.el)][stack exchage (sx.el):2]]
+key binding
+#+BEGIN_SRC emacs-lisp
 (after! org
        (use-package! sx
          :config
@@ -2779,9 +3013,15 @@ that."
                     ("s" . sx-search))))
 
 (map! :leader "l s" 'sx-ask)
-;; stack exchage (sx.el):2 ends here
+#+END_SRC
 
-;; [[file:config.org::*yankpad][yankpad:1]]
+
+* Snippets
+** yankpad
+:PROPERTIES:
+:ID:       facac8d5-ccc2-4ef8-8a04-f087dd55c762
+:END:
+#+BEGIN_SRC emacs-lisp
 (setq yankpad-file "~/org/yankpad.org")
 (map! :leader "y m" #'yankpad-map)
 (map! :leader "y i" #'yankpad-insert)
@@ -2791,19 +3031,27 @@ that."
 (map! :leader "y e" #'yankpad-edit)
 (map! :leader "y p" #'yankpad-aya-persist)
 (map! :leader "y r" #'yankpad-reload)
-;; yankpad:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Code Library][Code Library:1]]
+#+RESULTS:
+: yankpad-expand
+** Code Library
+#+BEGIN_SRC emacs-lisp
 (setq code-library-directory "~/org/CodeLibrary"
       code-library-sync-to-gist t)
-;; Code Library:1 ends here
-
-;; [[file:config.org::*Hierarchy][Hierarchy:1]]
+#+END_SRC
+* Hierarchy
+#+BEGIN_SRC emacs-lisp
 (load-file "~/.emacs.d/.local/straight/repos/hierarchy/hierarchy.el")
 (require 'hierarchy)
-;; Hierarchy:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*reddit (md4rd packages)][reddit (md4rd packages):1]]
+* Social media
+** reddit (md4rd packages)
+:PROPERTIES:
+:ID:       c3de3e8e-ccfc-4e24-985b-d667fb579361
+:END:
+#+BEGIN_SRC emacs-lisp
 (require 'md4rd)
 
 ;; authentication
@@ -2834,22 +3082,30 @@ that."
 ;; (map! :leader "l s r u" 'md4rd-upvote)
 ;; (map! :leader "l s r d" 'md4rd-downvote)
 ;; (map! :leader "l s r t" 'md4rd-widget-toggle-line)
-;; reddit (md4rd packages):1 ends here
+#+END_SRC
 
-;; [[file:config.org::*howdoyou][howdoyou:1]]
+* howdoyou
+#+BEGIN_SRC emacs-lisp
 (map! :leader "l h" 'howdoyou-query)
-;; howdoyou:1 ends here
-
-;; [[file:config.org::*langtool][langtool:1]]
+#+END_SRC
+* langtool
+:PROPERTIES:
+:ID:       405675d1-b36c-4d06-9d97-cadc7013bb69
+:END:
+#+BEGIN_SRC emacs-lisp
 (setq langtool-language-tool-jar "~/Downloads/LanguageTool-5.6-stable/languagetool-commandline.jar")
 (map! :leader "l l c" 'langtool-check)
 (map! :leader "l l q" 'langtool-check-done)
 ;; (map! :leader "l l s" 'langtool-switch-default-language)
 (map! :leader "l l m" 'langtool-show-message-at-point)
 (map! :leader "l l e" 'langtool-correct-buffer)
-;; langtool:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*spell fu][spell fu:1]]
+* spell fu
+:PROPERTIES:
+:ID:       2e9d44fe-6465-48ec-bc10-d0cb8e4592e8
+:END:
+#+BEGIN_SRC emacs-lisp
 ;; (after! spell-fu)
 ;; (setf (alist-get 'markdown-mode '+spell-excluded-faces-alist)
 ;;       '(markdown-code-face
@@ -2876,54 +3132,42 @@ that."
 ;;        org-src
 ;;        org-tag
 ;;        org-verbatim))
-;; spell fu:1 ends here
 
-;; [[file:config.org::*flyspell][flyspell:1]]
+#+END_SRC
+
+* flyspell
+#+BEGIN_SRC emacs-lisp
 (map! :n "z ." 'flyspell-correct-wrapper)
-;; flyspell:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*org superlink][org superlink:1]]
-;; (add-to-list 'load-path "~/.emacs.d/manual-install/org-super-links/")
-;; (require 'org-super-links)
-;; (use-package! org-super-links
-;;   :bind (("C-c s s" . org-super-links-link)
-;; 	   ("C-c s l" . org-super-links-store-link)
-;; 	   ("C-c s C-l" . org-super-links-insert-link)))
-;; ;; (map! :leader "n l" #'org-super-links-store-link)
-;; ;; (map! :leader "m l l" #'org-super-links-insert-link)
-;; org superlink:1 ends here
-
-;; [[file:config.org::*ledger][ledger:1]]
+#+RESULTS:
+* org superlink
+:PROPERTIES:
+:ID:       ee662cf2-862a-4913-87cf-020fe4f431b5
+:END:
+#+BEGIN_SRC emacs-lisp
+(add-to-list 'load-path "~/.emacs.d/manual-install/org-super-links/")
+(require 'org-super-links)
+(use-package! org-super-links
+  :bind (("C-c s s" . org-super-links-link)
+	   ("C-c s l" . org-super-links-store-link)
+	   ("C-c s C-l" . org-super-links-insert-link)))
+;; (map! :leader "n l" #'org-super-links-store-link)
+;; (map! :leader "m l l" #'org-super-links-insert-link)
+#+END_SRC
+* ledger
+#+BEGIN_SRC emacs-lisp
 (add-to-list 'auto-mode-alist '("\\.dat\\'" . ledger-mode))
-;; ledger:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*treemacs][treemacs:1]]
+* treemacs
+:PROPERTIES:
+:ID:       977d0276-5eb8-459e-b0fb-52d2380a9664
+:END:
+#+BEGIN_SRC emacs-lisp
 (require 'treemacs)
 (define-key treemacs-mode-map (kbd "M-h") 'treemacs-goto-parent-node)
-;; treemacs:1 ends here
+#+END_SRC
 
-;; [[file:config.org::*Magit][Magit:1]]
-(with-eval-after-load 'magit
-  (require 'forge))
-;; Magit:1 ends here
 
-;; [[file:config.org::*Cdlatex][Cdlatex:1]]
-(defun my-cdlatex-mode-map-hook ()
-  (define-key org-cdlatex-mode-map (kbd "`") nil))
-
-(eval-after-load 'org-cdlatex-mode
-  (add-hook 'org-cdlatex-mode-hook 'my-cdlatex-mode-map-hook))
-;; Cdlatex:1 ends here
-
-;; [[file:config.org::*org-fc][org-fc:1]]
-;; (require 'org-fc)
-;; (require 'org-fc-awk)
-;; org-fc:1 ends here
-
-;; [[file:config.org::*region-occurrence-highlighter][region-occurrence-highlighter:1]]
-(global-region-occurrences-highlighter-mode)
-;; region-occurrence-highlighter:1 ends here
-
-;; [[file:config.org::*Emmet Mode][Emmet Mode:1]]
-
-;; Emmet Mode:1 ends here
+* Uncategorized Configuration

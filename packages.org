@@ -1,4 +1,9 @@
-;; [[file:packages.org::*Doom Comment][Doom Comment:1]]
+#+title: Packages.el in org mode
+#+PROPERTY: header-args :tangle "~/.doom.d/packages.el" :comments link
+#+PROPERTY: comments org
+
+* Doom Comment
+#+BEGIN_SRC emacs-lisp
 ;; -*- no-byte-compile: t; -*-
 ;;; $DOOMDIR/packages.el
 
@@ -49,9 +54,10 @@
 ;(unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
-;; Doom Comment:1 ends here
+#+END_SRC
 
-;; [[file:packages.org::*Packages that I am using][Packages that I am using:1]]
+* Packages that I am using
+#+BEGIN_SRC emacs-lisp
 ;; When using org-roam via the `+roam` flag
 (package! org-roam-bibtex)
 (unpin! org-roam)
@@ -117,37 +123,44 @@
 (package! vagrant)
 (package! ob-restclient)
 (package! gif-screencast)
-;; Packages that I am using:1 ends here
+#+END_SRC
 
-;; [[file:packages.org::*restclient mode][restclient mode:1]]
+** restclient mode
+#+BEGIN_SRC emacs-lisp
 (package! ob-restclient)
 ;; (ob-restclient :type git :flavor melpa :host github :repo "alf/ob-restclient.el")
-;; restclient mode:1 ends here
-
-;; [[file:packages.org::*cell mode][cell mode:1]]
+#+END_SRC
+** cell mode
+#+BEGIN_SRC emacs-lisp
 ; (package! cell)
-;; cell mode:1 ends here
+#+END_SRC
 
-;; [[file:packages.org::*org-fc][org-fc:1]]
+** org-fc
+#+BEGIN_SRC emacs-lisp
 ;; (package! org-fc :recipe
 ;;   (:host nil
 ;;    :files ("awk" "demo.org")
 ;;    :repo "https://github.com/l3kn/org-fc"))
-;; org-fc:1 ends here
+#+END_SRC
 
-;; [[file:packages.org::*region-occurrence-highlighter][region-occurrence-highlighter:1]]
+** region-occurrence-highlighter
+#+BEGIN_SRC emacs-lisp
 (package! region-occurrences-highlighter)
-;; region-occurrence-highlighter:1 ends here
+#+END_SRC
 
-;; [[file:packages.org::*counsel-jq][counsel-jq:1]]
+** counsel-jq
+#+BEGIN_SRC emacs-lisp
 (package! counsel-jq)
-;; counsel-jq:1 ends here
+#+END_SRC
 
-;; [[file:packages.org::*json-navigator][json-navigator:1]]
-(package! json-navigator)
-;; json-navigator:1 ends here
+** json-navigator
+#+BEGIN_SRC emacs-lisp
+;; (package! json-navigator) ;; weird style. don't like the feel when using it.
+#+END_SRC
 
-;; [[file:packages.org::*Packages that I have previously tried.][Packages that I have previously tried.:1]]
+
+* Packages that I have previously tried.
+#+BEGIN_SRC emacs-lisp
 ;; (package! direx)
 ;; (package! chart)
 ;; (package! cell)
@@ -192,4 +205,4 @@
 ;; (package! mu4e)
 ;; (package! org-roam-bibtex
 ;;   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
-;; Packages that I have previously tried.:1 ends here
+#+END_SRC

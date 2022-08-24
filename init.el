@@ -23,7 +23,7 @@
        company ; the ultimate code completion backend
        ;;helm              ; the *other* search engine for love and life
        ;;ido               ; the other *other* search engine...
-       ;;ivy               ; a search engine for love and life
+       ;; ivy               ; a search engine for love and life
        (vertico +icon)                  ; the search engine of the future
 
        :ui
@@ -45,7 +45,7 @@
        ;;tabs              ; a tab bar for Emacs
        ;;treemacs          ; a project drawer, like neotree but cooler
        ;;unicode           ; extended unicode support for various languages
-       vc-gutter              ; vcs diff in the fringe
+       (vc-gutter +vc-gutter-diff-unsaved-buffer)              ; vcs diff in the fringe
        vi-tilde-fringe        ; fringe tildes to mark beyond EOB
        ;;window-select     ; visually switch windows
        workspaces             ; tab emulation, persistence & separate workspaces
@@ -101,11 +101,11 @@
        magit                     ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
        pass
-       ;; pdf                              ; pdf enhancements
+       pdf                              ; pdf enhancements
        ;; ;;prodigy           ; FIXME managing external services & code builders
        ;; ;;rgb               ; creating color strings
        ;; ;;taskrunner        ; taskrunner for all your projects
-       ;; terraform
+       terraform
                                         ; infrastructure as code
        ;;tmux              ; an API for interacting with tmux
        ;; upload            ; map local to remote projects via ssh/ftp
@@ -166,9 +166,9 @@
        ;;qt                ; the 'cutest' gui framework ever
        ;;racket            ; a DSL for DSLs
        ;;raku              ; the artist formerly known as perl6
-       ;;rest              ; Emacs as a REST client
+       rest              ; Emacs as a REST client
        ;;rst               ; ReST in peace
-       ;;(ruby +rails)     ; 1.step {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
+       (ruby +rails)     ; 1.step {|i| p "Ruby is #{i.even? ? 'love' : 'life'}"}
        (rust +lsp)       ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
        (scala +lsp)      ; java, but good
        ;;(scheme +guile)   ; a fully conniving family of lisps
@@ -190,7 +190,7 @@
        :app
        calendar
        ;;emms
-       ;; everywhere                   ; *leave* Emacs!? You must be joking
+       everywhere                   ; *leave* Emacs!? You must be joking
        irc
                                         ; how neckbeards socialize
        (rss +org)                   ; emacs as an RSS reader

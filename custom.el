@@ -7,7 +7,8 @@
  '(org-agenda-files
    '("/home/awannaphasch2016/org/PhD.org" "/home/awannaphasch2016/org/diary.org" "/home/awannaphasch2016/org/journal.org" "/home/awannaphasch2016/org/refile.org" "/home/awannaphasch2016/org/todo.org" "/home/awannaphasch2016/org/projects/sideprojects/garun/garun.org" "/home/awannaphasch2016/org/notes/incremental-learning.org" "/home/awannaphasch2016/org/projects/sideprojects/pen.org" "/home/awannaphasch2016/org/GTD.org" "/home/awannaphasch2016/org/notes/articles-to-reads.org" "/home/awannaphasch2016/org/notes/books/books-to-read.org" "/home/awannaphasch2016/org/personal-website.org" "/home/awannaphasch2016/org/school.org" "/home/awannaphasch2016/org/expert-identification.org" "/home/awannaphasch2016/org/life.org" "/home/awannaphasch2016/org/finance/personal-finance.org"))
  '(package-selected-packages
-   '(zotero yasnippet pkg-info paredit org-web-tools org-sidebar org-roam org-ref org-preview-html org-present org-noter-pdftools org-drill org-download org-brain ob-ipython ledger-mode key-chord ivy helm-bibtex exec-path-from-shell eimp eglot dap-mode bicycle ace-jump-mode)))
+   '(zotero yasnippet pkg-info paredit org-web-tools org-sidebar org-roam org-ref org-preview-html org-present org-noter-pdftools org-drill org-download org-brain ob-ipython ledger-mode key-chord ivy helm-bibtex exec-path-from-shell eimp eglot dap-mode bicycle ace-jump-mode))
+ '(warning-suppress-log-types '((:warning))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -43,3 +44,4 @@
 (org-roam-db-autosync-mode)
 (put 'projectile-ag 'disabled nil)
 (put 'customize-group 'disabled nil)
+(put 'narrow-to-region 'disabled nil)
